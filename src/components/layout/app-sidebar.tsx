@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Building2, Users2, ShieldCheck, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, Building2, Users2, ShieldCheck, Settings, LayoutTemplate } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -44,7 +44,19 @@ const navItems = [
     url: '/settings',
     icon: Settings,
   },
+  {
+    title: 'Form Templates',
+    url: '/form-templates',
+    icon: LayoutTemplate,
+  },
 ];
+
+function isNavActive(pathname: string, itemUrl: string): boolean {
+  if (itemUrl === '/') {
+    return pathname === '/';
+  }
+  return pathname === itemUrl || pathname === `${itemUrl}/`;
+}
 
 export function AppSidebar() {
   const location = useLocation();
@@ -68,7 +80,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    isActive={location.pathname === item.url}
+                    isActive={isNavActive(location.pathname, item.url)}
                     tooltip={item.title}
                   >
                     <Link to={item.url}>

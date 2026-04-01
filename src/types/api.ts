@@ -36,6 +36,18 @@ export interface Role {
   updated_at: string;
 }
 
+export interface FormTemplate {
+  id: number;
+  name: string;
+  json_schema: unknown;
+  ui_schema: unknown;
+  is_active: boolean;
+  created_by: number | null;
+  creator?: User | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   links: {

@@ -16,6 +16,8 @@ import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedTeamsIndexRouteImport } from './routes/_authenticated/teams/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedRolesIndexRouteImport } from './routes/_authenticated/roles/index'
+import { Route as AuthenticatedFormTemplatesIndexRouteImport } from './routes/_authenticated/form-templates/index'
+import { Route as AuthenticatedFormBuilderIndexRouteImport } from './routes/_authenticated/form-builder/index'
 import { Route as AuthenticatedDepartmentsIndexRouteImport } from './routes/_authenticated/departments/index'
 
 const LoginRoute = LoginRouteImport.update({
@@ -53,6 +55,18 @@ const AuthenticatedRolesIndexRoute = AuthenticatedRolesIndexRouteImport.update({
   path: '/roles/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedFormTemplatesIndexRoute =
+  AuthenticatedFormTemplatesIndexRouteImport.update({
+    id: '/form-templates/',
+    path: '/form-templates/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedFormBuilderIndexRoute =
+  AuthenticatedFormBuilderIndexRouteImport.update({
+    id: '/form-builder/',
+    path: '/form-builder/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedDepartmentsIndexRoute =
   AuthenticatedDepartmentsIndexRouteImport.update({
     id: '/departments/',
@@ -64,6 +78,8 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
   '/departments/': typeof AuthenticatedDepartmentsIndexRoute
+  '/form-builder/': typeof AuthenticatedFormBuilderIndexRoute
+  '/form-templates/': typeof AuthenticatedFormTemplatesIndexRoute
   '/roles/': typeof AuthenticatedRolesIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/teams/': typeof AuthenticatedTeamsIndexRoute
@@ -73,6 +89,8 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/': typeof AuthenticatedIndexRoute
   '/departments': typeof AuthenticatedDepartmentsIndexRoute
+  '/form-builder': typeof AuthenticatedFormBuilderIndexRoute
+  '/form-templates': typeof AuthenticatedFormTemplatesIndexRoute
   '/roles': typeof AuthenticatedRolesIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/teams': typeof AuthenticatedTeamsIndexRoute
@@ -84,6 +102,8 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/departments/': typeof AuthenticatedDepartmentsIndexRoute
+  '/_authenticated/form-builder/': typeof AuthenticatedFormBuilderIndexRoute
+  '/_authenticated/form-templates/': typeof AuthenticatedFormTemplatesIndexRoute
   '/_authenticated/roles/': typeof AuthenticatedRolesIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/teams/': typeof AuthenticatedTeamsIndexRoute
@@ -95,6 +115,8 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/departments/'
+    | '/form-builder/'
+    | '/form-templates/'
     | '/roles/'
     | '/settings/'
     | '/teams/'
@@ -104,6 +126,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/'
     | '/departments'
+    | '/form-builder'
+    | '/form-templates'
     | '/roles'
     | '/settings'
     | '/teams'
@@ -114,6 +138,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/_authenticated/'
     | '/_authenticated/departments/'
+    | '/_authenticated/form-builder/'
+    | '/_authenticated/form-templates/'
     | '/_authenticated/roles/'
     | '/_authenticated/settings/'
     | '/_authenticated/teams/'
@@ -176,6 +202,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRolesIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/form-templates/': {
+      id: '/_authenticated/form-templates/'
+      path: '/form-templates'
+      fullPath: '/form-templates/'
+      preLoaderRoute: typeof AuthenticatedFormTemplatesIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/form-builder/': {
+      id: '/_authenticated/form-builder/'
+      path: '/form-builder'
+      fullPath: '/form-builder/'
+      preLoaderRoute: typeof AuthenticatedFormBuilderIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/departments/': {
       id: '/_authenticated/departments/'
       path: '/departments'
@@ -189,6 +229,8 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedDepartmentsIndexRoute: typeof AuthenticatedDepartmentsIndexRoute
+  AuthenticatedFormBuilderIndexRoute: typeof AuthenticatedFormBuilderIndexRoute
+  AuthenticatedFormTemplatesIndexRoute: typeof AuthenticatedFormTemplatesIndexRoute
   AuthenticatedRolesIndexRoute: typeof AuthenticatedRolesIndexRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
   AuthenticatedTeamsIndexRoute: typeof AuthenticatedTeamsIndexRoute
@@ -198,6 +240,8 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedDepartmentsIndexRoute: AuthenticatedDepartmentsIndexRoute,
+  AuthenticatedFormBuilderIndexRoute: AuthenticatedFormBuilderIndexRoute,
+  AuthenticatedFormTemplatesIndexRoute: AuthenticatedFormTemplatesIndexRoute,
   AuthenticatedRolesIndexRoute: AuthenticatedRolesIndexRoute,
   AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   AuthenticatedTeamsIndexRoute: AuthenticatedTeamsIndexRoute,
