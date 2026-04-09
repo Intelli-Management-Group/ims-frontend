@@ -8,11 +8,7 @@ import { FieldTab } from "@/components/form-builder/form-field-library";
 import { SingleStepFormPreview } from "@/components/form-builder/form-preview";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { FormElementOrList } from "@/db-collections/form-builder.collections";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -20,6 +16,7 @@ import { useScreenSize } from "@/hooks/use-screen-size";
 import useFormBuilderState from "@/hooks/use-form-builder-state";
 import { generateFormJsonSchema, generateFormUiSchema } from "@/lib/schema-generators";
 import {
+  getStoredFormName,
   initializeFormBuilder,
   setFormName,
 } from "@/services/form-builder.service";
@@ -29,13 +26,15 @@ export const Route = createFileRoute("/_authenticated/form-builder/")({
 });
 
 type FormBuilderSidebarHeaderProps = {
-  formName: string;
+  templateName: string;
+  onTemplateNameChange: (value: string) => void;
   isSaving: boolean;
   onSave: () => void;
 };
 
 function FormBuilderSidebarHeader({
-  formName,
+  templateName,
+  onTemplateNameChange,
   isSaving,
   onSave,
 }: FormBuilderSidebarHeaderProps) {
@@ -47,9 +46,9 @@ function FormBuilderSidebarHeader({
           <Input
             aria-label="Template name"
             className="h-8 text-sm font-semibold text-foreground"
-            value={formName}
+            value={templateName}
             placeholder="Form Template Name"
-            onChange={(e) => setFormName(e.target.value)}
+            onChange={(e) => onTemplateNameChange(e.target.value)}
           />
         </div>
       </div>
@@ -62,31 +61,38 @@ function FormBuilderSidebarHeader({
 }
 
 function FormBuilderPage() {
-  useEffect(() => {
-    initializeFormBuilder();
-  }, []);
-
   const isMobile = useIsMobile();
   const screenSize = useScreenSize();
   const isTablet = screenSize.lessThan("lg") && !isMobile;
   const [isSaving, setIsSaving] = useState(false);
-  const { formElements, formName } = useFormBuilderState();
+  const { formElements } = useFormBuilderState();
+  /** Editable label; do not mirror `useLiveQuery` into state — `formName` can lag behind `setFormName` and would clear this each render. */
+  const [templateName, setTemplateName] = useState("");
 
-  const jsonSchema = useMemo(
-    () => generateFormJsonSchema(formElements as unknown as FormElementOrList[]),
-    [formElements],
-  );
-  const uiSchema = useMemo(
-    () => generateFormUiSchema(formElements as unknown as FormElementOrList[]),
-    [formElements],
-  );
+  useEffect(() => {
+    initializeFormBuilder();
+    setTemplateName(getStoredFormName());
+  }, []);
+
+  const handleTemplateNameChange = (value: string) => {
+    setTemplateName(value);
+    setFormName(value);
+  };
+
+  const jsonSchema = useMemo(() => generateFormJsonSchema(formElements as unknown as FormElementOrList[]), [formElements]);
+  const uiSchema = useMemo(() => generateFormUiSchema(formElements as unknown as FormElementOrList[]), [formElements]);
 
   const handleSave = async () => {
     if (isSaving) return;
+    const trimmedName = templateName.trim();
+    if (!trimmedName) {
+      toast.error("Enter a template name");
+      return;
+    }
     setIsSaving(true);
     try {
       await formTemplatesApi.createFormTemplate({
-        name: formName || "draft",
+        name: trimmedName,
         json_schema: jsonSchema as Record<string, unknown>,
         ui_schema: uiSchema as Record<string, unknown>,
         is_active: true,
@@ -105,31 +111,28 @@ function FormBuilderPage() {
         <div className="flex flex-col flex-1 min-h-0">
           <div className="border-b border-border shrink-0">
             <FormBuilderSidebarHeader
-              formName={formName}
+              templateName={templateName}
+              onTemplateNameChange={handleTemplateNameChange}
               isSaving={isSaving}
               onSave={handleSave}
             />
-            <div className="h-[min(40vh,320px)] min-h-[200px] overflow-auto">
+            <div className="shrink-0">
               <FieldTab />
             </div>
           </div>
 
-          <div className="p-4 border-b border-border shrink-0 overflow-auto max-h-[35vh]">
+          <div className="p-4 border-b border-border shrink-0">
             <div className="mb-4 pb-2 border-b">
               <h3 className="text-lg font-semibold text-primary">Editor</h3>
-              <p className="text-sm text-muted-foreground">
-                Design your form elements
-              </p>
+              <p className="text-sm text-muted-foreground">Design your form elements</p>
             </div>
             <FormEdit />
           </div>
 
-          <div className="p-4 flex-1 min-h-0 overflow-auto">
+          <div className="p-4 shrink-0">
             <div className="mb-4 pb-2 border-b">
               <h3 className="text-lg font-semibold text-primary">Preview</h3>
-              <p className="text-sm text-muted-foreground">
-                See how your form looks
-              </p>
+              <p className="text-sm text-muted-foreground">See how your form looks</p>
             </div>
             <SingleStepFormPreview />
           </div>
@@ -145,10 +148,11 @@ function FormBuilderPage() {
           <ResizablePanel defaultSize={40} minSize={30} className="min-h-0 min-w-0">
             <div className="flex flex-col h-full min-h-0 min-w-0 overflow-hidden">
               <FormBuilderSidebarHeader
-              formName={formName}
-              isSaving={isSaving}
-              onSave={handleSave}
-            />
+                templateName={templateName}
+                onTemplateNameChange={handleTemplateNameChange}
+                isSaving={isSaving}
+                onSave={handleSave}
+              />
               <div className="flex-1 min-h-0 min-w-0">
                 <FieldTab />
               </div>
@@ -163,9 +167,7 @@ function FormBuilderPage() {
                 <div className="flex flex-col h-full border-r min-h-0">
                   <div className="p-4 border-b shrink-0">
                     <h3 className="text-lg font-semibold text-primary">Editor</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Design your form elements
-                    </p>
+                    <p className="text-sm text-muted-foreground">Design your form elements</p>
                   </div>
                   <ScrollArea className="flex-1 min-h-0">
                     <div className="p-4">
@@ -181,9 +183,7 @@ function FormBuilderPage() {
                 <div className="flex flex-col h-full min-h-0">
                   <div className="p-4 border-b shrink-0">
                     <h3 className="text-lg font-semibold text-primary">Preview</h3>
-                    <p className="text-sm text-muted-foreground">
-                      See how your form looks
-                    </p>
+                    <p className="text-sm text-muted-foreground">See how your form looks</p>
                   </div>
                   <ScrollArea className="flex-1 min-h-0">
                     <div className="p-4">
@@ -201,18 +201,12 @@ function FormBuilderPage() {
 
   return (
     <main className="h-[calc(100dvh-4rem)] w-full min-h-0 min-w-0">
-      <ResizablePanelGroup
-        direction="horizontal"
-        className="h-full min-h-0 min-w-0"
-      >
-        <ResizablePanel
-          defaultSize={28}
-          minSize={18}
-          className="min-w-0 bg-background/80 backdrop-blur supports-backdrop-filter:bg-background/60 border-r"
-        >
+      <ResizablePanelGroup direction="horizontal" className="h-full min-h-0 min-w-0">
+        <ResizablePanel defaultSize={28} minSize={18} className="min-w-0 bg-background/80 backdrop-blur supports-backdrop-filter:bg-background/60 border-r">
           <div className="flex flex-col h-full min-h-0 min-w-0 overflow-hidden">
             <FormBuilderSidebarHeader
-              formName={formName}
+              templateName={templateName}
+              onTemplateNameChange={handleTemplateNameChange}
               isSaving={isSaving}
               onSave={handleSave}
             />
@@ -225,17 +219,12 @@ function FormBuilderPage() {
         <ResizableHandle withHandle className="z-20 shrink-0" />
 
         <ResizablePanel defaultSize={72} minSize={30} className="min-w-0">
-          <ResizablePanelGroup
-            direction="horizontal"
-            className="h-full min-h-0 min-w-0"
-          >
+          <ResizablePanelGroup direction="horizontal" className="h-full min-h-0 min-w-0">
             <ResizablePanel defaultSize={50} minSize={25} className="min-w-0">
               <div className="flex flex-col h-full border-r min-h-0">
                 <div className="p-4 border-b shrink-0">
                   <h3 className="text-lg font-semibold text-primary">Editor</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Design your form elements
-                  </p>
+                  <p className="text-sm text-muted-foreground">Design your form elements</p>
                 </div>
                 <ScrollArea className="flex-1 min-h-0">
                   <div className="p-4">
@@ -251,9 +240,7 @@ function FormBuilderPage() {
               <div className="flex flex-col h-full min-h-0">
                 <div className="p-4 border-b shrink-0">
                   <h3 className="text-lg font-semibold text-primary">Preview</h3>
-                  <p className="text-sm text-muted-foreground">
-                    See how your form looks
-                  </p>
+                  <p className="text-sm text-muted-foreground">See how your form looks</p>
                 </div>
                 <ScrollArea className="flex-1 min-h-0">
                   <div className="p-4">

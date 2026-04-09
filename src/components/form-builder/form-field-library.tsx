@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { formElementsList } from "@/constants/form-elements-list";
 import type { FormElement } from "@/db-collections/form-builder.collections";
@@ -6,7 +5,6 @@ import { appendElement } from "@/services/form-builder.service";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function FieldTab() {
-	const [searchQuery] = useState("");
 	// Group elements by their group property
 	const groupedElements = formElementsList.reduce(
 		(acc, element) => {
@@ -14,16 +12,7 @@ export function FieldTab() {
 			if (!acc[group]) {
 				acc[group] = [];
 			}
-			if (searchQuery) {
-				if (
-					element.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-					element.fieldType.toLowerCase().includes(searchQuery.toLowerCase())
-				) {
-					acc[group].push(element);
-				}
-			} else {
-				acc[group].push(element);
-			}
+			acc[group].push(element);
 			return acc;
 		},
 		{} as Record<string, typeof formElementsList>,
@@ -74,13 +63,7 @@ export function FieldTab() {
 								Field Elements
 							</h3> */}
 							<div className="grid grid-cols-1 gap-2 sm:gap-2">
-								{groupedElements.field.length ? (
-									groupedElements.field.map(renderElementButton)
-								) : (
-									<div className="text-sm text-muted-foreground p-3">
-										No Field match your query
-									</div>
-								)}
+								{groupedElements.field.map(renderElementButton)}
 							</div>
 						</div>
 					)}
@@ -92,13 +75,7 @@ export function FieldTab() {
 								Display Elements
 							</h3>
 							<div className="grid grid-cols-1 gap-2 sm:gap-2">
-								{groupedElements.display.length ? (
-									groupedElements.display.map(renderElementButton)
-								) : (
-									<div className="text-sm text-muted-foreground p-3">
-										No Field match your query
-									</div>
-								)}
+								{groupedElements.display.map(renderElementButton)}
 							</div>
 						</div>
 					)}

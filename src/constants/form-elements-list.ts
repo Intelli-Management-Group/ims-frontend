@@ -1,10 +1,7 @@
 import {
-	Brackets,
 	Calendar,
 	CheckSquare,
 	ChevronDown,
-	Grid3X3,
-	Hash,
 	ListChecks,
 	// ToggleLeft,
 	Type,
@@ -12,7 +9,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-export type FormElementsPaletteItem = {
+type FormElementsPaletteItem = {
 	group: string;
 	name: string;
 	fieldType: string;
@@ -105,71 +102,5 @@ export const formElementsList: FormElementsPaletteItem[] = [
 		name: "Textarea",
 		fieldType: "Textarea",
 		icon: WrapText,
-	},
-];
-
-/**
- * Table column types for adding columns
- */
-export const tableColumnTypes = [
-	{
-		name: "String",
-		type: "string",
-		icon: Type,
-	},
-	{
-		name: "Number",
-		type: "number",
-		icon: Hash,
-	},
-	{
-		name: "Boolean",
-		type: "boolean",
-		icon: CheckSquare,
-	},
-	{
-		name: "Date",
-		type: "date",
-		icon: Calendar,
-	},
-	{
-		name: "Email",
-		type: "email",
-		icon: Type,
-	},
-	{
-		name: "URL",
-		type: "url",
-		icon: Type,
-	},
-	{
-		name: "Phone",
-		type: "tel",
-		icon: Type,
-	},
-	{
-		name: "Time",
-		type: "time",
-		icon: Calendar,
-	},
-	{
-		name: "DateTime",
-		type: "datetime",
-		icon: Calendar,
-	},
-	{
-		name: "Object",
-		type: "object",
-		icon: Grid3X3,
-	},
-	{
-		name: "Enum",
-		type: "enum",
-		icon: ListChecks,
-	},
-	{
-		name: "Array",
-		type: "array",
-		icon: Brackets,
 	},
 ];

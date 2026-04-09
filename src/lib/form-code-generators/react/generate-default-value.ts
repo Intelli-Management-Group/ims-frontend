@@ -1,4 +1,5 @@
-import type { FormArray, FormElement, FormElementOrList } from "@/types/form-types";
+import type { FormElement, FormElementOrList } from "@/types/form-types";
+import type { FormArray } from "@/db-collections/form-builder.collections";
 
 type DefaultValue =
 	| string
@@ -64,7 +65,7 @@ const FORM_ARRAY_DEFAULTS: Record<string, (field: FormArray) => DefaultValue> =
 /**
  * Gets the appropriate default value for a form field based on its type
  */
-export const getFieldDefaultValue = (
+const getFieldDefaultValue = (
 	field: FormElement | FormArray,
 ): DefaultValue | undefined => {
 	if ("static" in field && field.static) {
@@ -106,7 +107,7 @@ const sanitizeFieldName = (name: string): string => {
 /**
  * Recursively processes form elements to build default values object
  */
-export const processFormElements = (
+const processFormElements = (
 	elements: FormElementOrList[],
 ): Record<string, DefaultValue> => {
 	const defaults: Record<string, DefaultValue> = {};
@@ -169,7 +170,7 @@ const valueToLiteralString = (value: unknown): string => {
 /**
  * Converts an object to a JavaScript object literal string with properly quoted keys
  */
-export const objectToLiteralString = (obj: Record<string, unknown>): string => {
+const objectToLiteralString = (obj: Record<string, unknown>): string => {
 	const entries = Object.entries(obj);
 
 	if (entries.length === 0) {
@@ -256,29 +257,4 @@ export const getDefaultFormElement = (
 	}
 
 	return defaults;
-};
-
-export const getDefaultValuesString = (
-	validationSchema: string | undefined,
-	schemaName: string,
-	formElements: unknown[],
-) => {
-	const defaultValues = getDefaultFormElement(
-		formElements as (FormElementOrList | FormArray)[],
-	);
-
-	// Convert the defaults object to a JavaScript object literal string
-	const defaultsString = objectToLiteralString(defaultValues);
-
-	const schema = validationSchema || "zod";
-	switch (schema) {
-		case "zod":
-			return `${defaultsString} as z.input<typeof ${schemaName}>`;
-		case "valibot":
-			return `${defaultsString} as v.InferInput<typeof ${schemaName}>`;
-		case "arktype":
-			return `${defaultsString} as typeof ${schemaName}.infer`;
-		default:
-			return `${defaultsString} as z.input<typeof ${schemaName}>`;
-	}
 };

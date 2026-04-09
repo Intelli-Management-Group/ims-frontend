@@ -601,7 +601,7 @@ const EditFormItem = (props: EditFormItemProps) => {
 				<Accordion type="single" collapsible className="w-full">
 					<AccordionItem value={`item-${element.id}`} className="border-none">
 						<AccordionTrigger className="px-2 py-1 text-sm text-muted-foreground hover:no-underline">
-							Customize Field
+							Edit Field
 						</AccordionTrigger>
 						<AccordionContent className="px-2 pb-4">
 							<FormElementEditor
@@ -705,7 +705,7 @@ const FormArrayFieldItem = ({
 				<Accordion type="single" collapsible className="w-full">
 					<AccordionItem value={`item-${element.id}`} className="border-none">
 						<AccordionTrigger className="px-2 py-1 text-sm text-muted-foreground hover:no-underline">
-							Customize Field
+							Edit Field
 						</AccordionTrigger>
 						<AccordionContent className="px-2 pb-4">
 							<FormElementEditor

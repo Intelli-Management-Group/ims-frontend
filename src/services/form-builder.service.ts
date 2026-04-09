@@ -3,7 +3,6 @@ import { defaultFormElements } from "@/constants/default-form-element";
 import {
 	type FormArray,
 	type FormArrayEntry,
-	type FormBuilder,
 	type FormBuilderSettings,
 	type FormElement,
 	type FormElementList,
@@ -26,16 +25,8 @@ const FORM_ID = 1;
 // ============================================================================
 
 export const DEFAULT_FORM_SETTINGS: FormBuilderSettings = {
-	defaultRequiredValidation: true,
-	numericInput: false,
-	focusOnError: true,
 	validationMethod: "onDynamic",
 	asyncValidation: 500,
-	activeTab: "builder",
-	preferredSchema: "zod",
-	preferredFramework: "react",
-	preferredPackageManager: "pnpm",
-	isCodeSidebarOpen: false,
 };
 
 export const DEFAULT_FORM_ELEMENTS: FormElementOrList[] = [];
@@ -181,125 +172,6 @@ const syncEntriesForFormArray = (formArray: FormArray): FormArrayEntry[] => {
 // Query Operations
 // ============================================================================
 
-/**
- * Get the current form data and settings
- */
-export const getFormData = (): FormBuilder | null => {
-	try {
-		return formBuilderCollection.get(FORM_ID) || null;
-	} catch (error) {
-		console.error("Failed to get form data:", error);
-		return null;
-	}
-};
-
-/**
- * Get form settings only
- */
-export const getSettings = (): FormBuilderSettings | null => {
-	try {
-		const data = getFormData();
-		return data?.settings || null;
-	} catch (error) {
-		console.error("Failed to get form settings:", error);
-		return null;
-	}
-};
-
-/**
- * Get form elements only
- */
-export const getFormElements = (): FormElements => {
-	try {
-		const data = getFormData();
-		return data?.formElements || [];
-	} catch (error) {
-		console.error("Failed to get form elements:", error);
-		return [];
-	}
-};
-
-/**
- * Get form name
- */
-export const getFormName = (): string => {
-	try {
-		const data = getFormData();
-		return data?.formName || "draft";
-	} catch (error) {
-		console.error("Failed to get form name:", error);
-		return "draft";
-	}
-};
-
-// ============================================================================
-// Settings Operations
-// ============================================================================
-
-/**
- * Update a single setting
- */
-export const updateSetting = <K extends keyof FormBuilderSettings>(
-	key: K,
-	value: FormBuilderSettings[K],
-): boolean => {
-	try {
-		formBuilderCollection.update(FORM_ID, (draft) => {
-			if (!draft.settings) {
-				draft.settings = DEFAULT_FORM_SETTINGS;
-			}
-			draft.settings[key] = value;
-		});
-		return true;
-	} catch (error) {
-		console.error(`Failed to update setting ${key}:`, error);
-		return false;
-	}
-};
-
-/**
- * Set active tab
- */
-export const setActiveTab = (
-	tab: FormBuilderSettings["activeTab"],
-): boolean => {
-	return updateSetting("activeTab", tab);
-};
-
-/**
- * Set preferred framework
- */
-export const setPreferredFramework = (
-	framework: FormBuilderSettings["preferredFramework"],
-): boolean => {
-	return updateSetting("preferredFramework", framework);
-};
-
-/**
- * Set preferred schema
- */
-export const setPreferredSchema = (
-	schema: FormBuilderSettings["preferredSchema"],
-): boolean => {
-	return updateSetting("preferredSchema", schema);
-};
-
-/**
- * Set preferred package manager
- */
-export const setPreferredPackageManager = (
-	manager: FormBuilderSettings["preferredPackageManager"],
-): boolean => {
-	return updateSetting("preferredPackageManager", manager);
-};
-
-/**
- * Set code sidebar open state
- */
-export const setCodeSidebarOpen = (open: boolean): boolean => {
-	return updateSetting("isCodeSidebarOpen", open);
-};
-
 // ============================================================================
 // Form Metadata Operations
 // ============================================================================
@@ -320,49 +192,17 @@ export const setFormName = (name: string): boolean => {
 };
 
 /**
- * Set schema name
+ * Current template name from the local form-builder store (synchronous).
+ * Use when saving so the name matches the latest `setFormName` write; the
+ * `useLiveQuery` hook may not have re-rendered yet in the same tick.
  */
-export const setSchemaName = (name: string): boolean => {
+export function getStoredFormName(): string {
 	try {
-		formBuilderCollection.update(FORM_ID, (draft) => {
-			draft.schemaName = name;
-		});
-		return true;
-	} catch (error) {
-		console.error("Failed to set schema name:", error);
-		return false;
+		return formBuilderCollection.get(FORM_ID)?.formName ?? "";
+	} catch {
+		return "";
 	}
-};
-
-/**
- * Set generated command URL in the active form builder state
- */
-export const setGeneratedCommandUrl = (url: string | undefined): boolean => {
-	try {
-		formBuilderCollection.update(FORM_ID, (draft) => {
-			draft.generatedCommandUrl = url;
-		});
-		return true;
-	} catch (error) {
-		console.error("Failed to set generated command URL:", error);
-		return false;
-	}
-};
-
-/**
- * Set form elements directly
- */
-export const setFormElements = (formElements: FormElements): boolean => {
-	try {
-		formBuilderCollection.update(FORM_ID, (draft) => {
-			draft.formElements = formElements;
-		});
-		return true;
-	} catch (error) {
-		console.error("Failed to set form elements:", error);
-		return false;
-	}
-};
+}
 
 // ============================================================================
 // Form Element CRUD Operations
@@ -528,52 +368,6 @@ export const resetFormElements = (): boolean => {
 // ============================================================================
 // Form Array Operations
 // ============================================================================
-
-/**
- * Add a form array
- */
-export const addFormArray = (arrayField: FormElementList): boolean => {
-	try {
-		formBuilderCollection.update(FORM_ID, (draft) => {
-			const defaultEntry: FormArrayEntry = {
-				id: uuid(),
-				fields: arrayField.map((field: FormElement | FormElement[]) => {
-					if (Array.isArray(field)) {
-						return field.map((nestedField: FormElement) => ({
-							...nestedField,
-							id: uuid(),
-							name: `${nestedField.name.replace(/-/g, "_")}_default_${Date.now()}`,
-						}));
-					}
-					return {
-						...field,
-						id: uuid(),
-						name: `${field.name.replace(/-/g, "_")}_default_${Date.now()}`,
-					};
-				}),
-			};
-
-			const newFormArray: FormArray = {
-				id: uuid(),
-				fieldType: "FormArray",
-				name: `formArray_${Date.now()}`,
-				label: "Form Array",
-				arrayField,
-				entries: [defaultEntry],
-			};
-
-			if (isFormArrayForm(draft.formElements as FormElementList)) {
-				(draft.formElements as FormArray[]).push(newFormArray);
-			} else {
-				(draft.formElements as FormElementList).push(newFormArray);
-			}
-		});
-		return true;
-	} catch (error) {
-		console.error("Failed to add form array:", error);
-		return false;
-	}
-};
 
 /**
  * Remove a form array
@@ -871,7 +665,7 @@ export const reorderFormArrayFields = (
 /**
  * Sync form array entries with template
  */
-export const syncFormArrayEntries = (arrayId: string): boolean => {
+const syncFormArrayEntries = (arrayId: string): boolean => {
 	try {
 		formBuilderCollection.update(FORM_ID, (draft) => {
 			const findAndSyncFormArray = (elements: FormElementList): void => {
@@ -1046,8 +840,7 @@ export function initializeFormBuilder(): boolean {
 		formBuilderCollection.insert([
 			{
 				id: FORM_ID,
-				formName: "draft",
-				schemaName: "draftFormSchema",
+				formName: "",
 				formElements: DEFAULT_FORM_ELEMENTS,
 				settings: DEFAULT_FORM_SETTINGS,
 			},
@@ -1059,4 +852,3 @@ export function initializeFormBuilder(): boolean {
 	}
 }
 
-export { FormBuilderError, isFormArray, isFormArrayForm };

@@ -1,16 +1,12 @@
 import type {
-	FormArray,
 	FormElement,
 	FormElementOrList,
 	Option,
 } from "@/types/form-types";
+import type { FormArray } from "@/db-collections/form-builder.collections";
 import { isStatic } from "@/lib/utils";
 
-/** @see https://github.com/rjsf-team/react-jsonschema-form — draft-07 is widely supported */
-export const RJSF_JSON_SCHEMA_DRAFT =
-	"http://json-schema.org/draft-07/schema#" as const;
-
-export type RjsfUiSchema = Record<string, unknown>;
+type RjsfUiSchema = Record<string, unknown>;
 
 const isFormArray = (element: unknown): element is FormArray =>
 	typeof element === "object" &&
@@ -353,8 +349,6 @@ export function generateRjsfJsonSchema(
 	}
 
 	return {
-		$schema: RJSF_JSON_SCHEMA_DRAFT,
-		title: "Form",
 		type: "object",
 		properties,
 		...(required.length ? { required } : {}),

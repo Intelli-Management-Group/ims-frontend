@@ -655,7 +655,7 @@ export const RenderFormElement = ({
 			return <h2 className="mt-4 font-bold text-xl">{formElement.content}</h2>;
 		case "H3":
 			return (
-				<h3 className="mt-3 font-semiboldbold text-lg">
+				<h3 className="mt-3 font-semibol text-lg">
 					{formElement.content} content
 				</h3>
 			);

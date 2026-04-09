@@ -189,7 +189,7 @@ type FormFieldElement =
  * StaticFormElement is a type that represents a static form element
  * that is not editable by the user
  */
-export type StaticFormElement = H1 | H2 | H3 | Divider | Description | Legend;
+type StaticFormElement = H1 | H2 | H3 | Divider | Description | Legend;
 
 export type FormElement =
 	| (FormFieldElement & { id: string })
@@ -197,22 +197,6 @@ export type FormElement =
 
 export type FormElementOrList = FormElement | FormElement[];
 
-export type FormElementList = FormElement[] | FormElementOrList[];
-export type FormElements = FormElementList | FormArray[];
-
-export type FormArrayEntry = {
-	id: string;
-	fields: FormElementList;
-};
-
-export type FormArray = {
-	fieldType: "FormArray";
-	id: string;
-	name: string;
-	label?: string;
-	arrayField: FormElementList;
-	entries: FormArrayEntry[];
-};
 //------------------------------------------------------------Form Element Handlers
 /**
  * @DropElement is a function that is used to drop an element to the form elements array
@@ -258,19 +242,3 @@ export type AppendElement = (options: {
 	content?: string;
 	required?: boolean;
 }) => void;
-
-//------------------------------------------------------------API Response Types
-/**
- * Generic API response structure with data and error fields
- */
-export interface ApiResponse<T = unknown> {
-	data: T | null;
-	error: string | null;
-}
-
-/**
- * Specific response type for draft operations
- */
-export type CreateRegistryResponse = ApiResponse<{
-	id: string;
-}>;

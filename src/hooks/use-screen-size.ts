@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 const SCREEN_SIZES = ["xs", "sm", "md", "lg", "xl", "2xl"] as const;
 
-export type ScreenSize = (typeof SCREEN_SIZES)[number];
+type ScreenSize = (typeof SCREEN_SIZES)[number];
 
 const sizeOrder: Record<ScreenSize, number> = {
   xs: 0,
@@ -13,7 +13,7 @@ const sizeOrder: Record<ScreenSize, number> = {
   "2xl": 5,
 } as const;
 
-export type ComparableScreenSize = {
+type ComparableScreenSize = {
   toString: () => ScreenSize;
   valueOf: () => number;
   equals: (other: ScreenSize) => boolean;
@@ -36,7 +36,7 @@ function createComparableScreenSize(value: ScreenSize): ComparableScreenSize {
   };
 }
 
-export function useScreenSize(): ComparableScreenSize {
+export function useScreenSize() {
   const [screenSize, setScreenSize] = useState<ScreenSize>("lg");
 
   useEffect(() => {

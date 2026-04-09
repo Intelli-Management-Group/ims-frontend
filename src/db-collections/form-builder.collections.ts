@@ -4,10 +4,7 @@ import {
 } from "@tanstack/react-db";
 import * as v from "valibot";
 
-export const FormBuilderSettingsSchema = v.object({
-	defaultRequiredValidation: v.optional(v.boolean(), true),
-	numericInput: v.optional(v.boolean(), false),
-	focusOnError: v.optional(v.boolean(), true),
+const FormBuilderSettingsSchema = v.object({
 	validationMethod: v.optional(
 		v.picklist(["onChange", "onBlur", "onDynamic"]),
 		"onDynamic",
@@ -16,17 +13,6 @@ export const FormBuilderSettingsSchema = v.object({
 		v.pipe(v.number(), v.minValue(0), v.maxValue(10000)),
 		500,
 	),
-	activeTab: v.optional(v.picklist(["builder", "generate"]), "builder"),
-	preferredSchema: v.optional(v.picklist(["zod", "valibot", "arktype"]), "zod"),
-	preferredFramework: v.optional(
-		v.picklist(["react", "vue", "angular", "solid"]),
-		"react",
-	),
-	preferredPackageManager: v.optional(
-		v.picklist(["pnpm", "npm", "yarn", "bun"]),
-		"pnpm",
-	),
-	isCodeSidebarOpen: v.optional(v.boolean(), false),
 });
 
 // ============================================================================
@@ -234,13 +220,11 @@ const FormElementsSchema = v.custom((input) => {
 	return Array.isArray(input);
 }, "FormElements must be an array");
 
-export const FormBuilderSchema = v.object({
+const FormBuilderSchema = v.object({
 	id: v.number(),
-	formName: v.optional(v.string(), "draft"),
-	schemaName: v.optional(v.string(), "draftFormSchema"),
+	formName: v.optional(v.string(), ""),
 	formElements: v.optional(FormElementsSchema, []),
 	settings: v.optional(FormBuilderSettingsSchema, {}),
-	generatedCommandUrl: v.optional(v.string()),
 });
 
 // ============================================================================
@@ -256,13 +240,6 @@ export type FormArray = v.InferOutput<typeof FormArraySchema>;
 export type FormArrayEntry = v.InferOutput<typeof FormArrayEntrySchema>;
 export type FormElements = v.InferOutput<typeof FormElementsSchema>;
 
-export type ValidationMethod = FormBuilderSettings["validationMethod"];
-export type PreferredSchema = FormBuilderSettings["preferredSchema"];
-export type PreferredFramework = FormBuilderSettings["preferredFramework"];
-export type PreferredPackageManager =
-	FormBuilderSettings["preferredPackageManager"];
-export type ActiveTab = FormBuilderSettings["activeTab"];
-export type Option = v.InferOutput<typeof OptionSchema>;
 // ============================================================================
 // Collection Setup
 // ============================================================================

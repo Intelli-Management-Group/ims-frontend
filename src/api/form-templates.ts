@@ -22,17 +22,4 @@ export const formTemplatesApi = {
     const { data } = await apiClient.post<FormTemplate>('/form-templates', payload);
     return data;
   },
-
-  updateFormTemplate: async (
-    id: number,
-    payload: Partial<{
-      name: string;
-      json_schema: Record<string, unknown>;
-      ui_schema: Record<string, unknown>;
-      is_active: boolean;
-    }>,
-  ) => {
-    const { data } = await apiClient.put<FormTemplate>(`/form-templates/${id}`, payload);
-    return data;
-  },
 };
