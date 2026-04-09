@@ -16,8 +16,7 @@ import { useScreenSize } from "@/hooks/use-screen-size";
 import useFormBuilderState from "@/hooks/use-form-builder-state";
 import { generateFormJsonSchema, generateFormUiSchema } from "@/lib/schema-generators";
 import {
-  getStoredFormName,
-  initializeFormBuilder,
+  resetFormBuilder,
   setFormName,
 } from "@/services/form-builder.service";
 
@@ -70,8 +69,8 @@ function FormBuilderPage() {
   const [templateName, setTemplateName] = useState("");
 
   useEffect(() => {
-    initializeFormBuilder();
-    setTemplateName(getStoredFormName());
+    resetFormBuilder();
+    setTemplateName("");
   }, []);
 
   const handleTemplateNameChange = (value: string) => {

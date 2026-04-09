@@ -820,6 +820,30 @@ export const updateFormArrayField = (
 };
 
 // ============================================================================
+// Template Loading
+// ============================================================================
+
+/**
+ * Hydrate the form builder store from a saved template.
+ * Replaces any current formElements and sets the template name.
+ */
+export function loadFormTemplate(
+	name: string,
+	formElements: FormElementOrList[],
+): boolean {
+	try {
+		formBuilderCollection.update(FORM_ID, (draft) => {
+			draft.formName = name;
+			draft.formElements = formElements;
+		});
+		return true;
+	} catch (error) {
+		console.error("Failed to load form template:", error);
+		return false;
+	}
+}
+
+// ============================================================================
 // Initialization
 // ============================================================================
 
@@ -848,6 +872,26 @@ export function initializeFormBuilder(): boolean {
 		return true;
 	} catch (error) {
 		console.error("Failed to initialize form builder:", error);
+		return false;
+	}
+}
+
+/**
+ * Reset the form builder store to empty defaults.
+ * Use when opening a new (blank) template so stale data from a
+ * previously-edited template is cleared.
+ */
+export function resetFormBuilder(): boolean {
+	try {
+		initializeFormBuilder();
+		formBuilderCollection.update(FORM_ID, (draft) => {
+			draft.formName = "";
+			draft.formElements = DEFAULT_FORM_ELEMENTS;
+			draft.settings = DEFAULT_FORM_SETTINGS;
+		});
+		return true;
+	} catch (error) {
+		console.error("Failed to reset form builder:", error);
 		return false;
 	}
 }

@@ -7,9 +7,10 @@ import { DataTablePagination } from '@/components/data-table/data-table-paginati
 import { StatusBadge } from '@/components/shared/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search } from 'lucide-react';
+import { Pencil, Plus, Search } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useAuth } from '@/hooks/use-auth';
+import type { FormTemplate } from '@/types/api';
 
 export const Route = createFileRoute('/_authenticated/form-templates/')({
   component: FormTemplatesPage,
@@ -44,29 +45,49 @@ function FormTemplatesPage() {
     {
       accessorKey: 'name',
       header: 'Name',
-      cell: ({ row }: any) => <div className="font-medium">{row.getValue('name')}</div>,
+      cell: ({ row }: { row: { getValue: (key: string) => unknown } }) => (
+        <div className="font-medium">{row.getValue('name') as string}</div>
+      ),
     },
     {
       accessorKey: 'is_active',
       header: 'Status',
-      cell: ({ row }: any) => <StatusBadge isActive={!!row.getValue('is_active')} />,
+      cell: ({ row }: { row: { getValue: (key: string) => unknown } }) => (
+        <StatusBadge isActive={!!row.getValue('is_active')} />
+      ),
     },
     {
       id: 'creator',
       header: 'Created by',
-      cell: ({ row }: any) => (
+      cell: ({ row }: { row: { original: FormTemplate } }) => (
         <span className="text-muted-foreground">{row.original.creator?.name ?? '—'}</span>
       ),
     },
     {
       accessorKey: 'updated_at',
       header: 'Updated',
-      cell: ({ row }: any) => (
+      cell: ({ row }: { row: { getValue: (key: string) => unknown } }) => (
         <span className="text-muted-foreground">
           {formatUpdatedAt(row.getValue('updated_at') as string)}
         </span>
       ),
     },
+    ...(isAdmin
+      ? [
+          {
+            id: 'actions',
+            header: '',
+            cell: ({ row }: { row: { original: FormTemplate } }) => (
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/form-builder/$templateId" params={{ templateId: String(row.original.id) }}>
+                  <Pencil className="h-4 w-4" />
+                  <span className="sr-only">Edit</span>
+                </Link>
+              </Button>
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (

@@ -19,6 +19,7 @@ import { Route as AuthenticatedRolesIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedFormTemplatesIndexRouteImport } from './routes/_authenticated/form-templates/index'
 import { Route as AuthenticatedFormBuilderIndexRouteImport } from './routes/_authenticated/form-builder/index'
 import { Route as AuthenticatedDepartmentsIndexRouteImport } from './routes/_authenticated/departments/index'
+import { Route as AuthenticatedFormBuilderTemplateIdRouteImport } from './routes/_authenticated/form-builder/$templateId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -73,10 +74,17 @@ const AuthenticatedDepartmentsIndexRoute =
     path: '/departments/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedFormBuilderTemplateIdRoute =
+  AuthenticatedFormBuilderTemplateIdRouteImport.update({
+    id: '/form-builder/$templateId',
+    path: '/form-builder/$templateId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
+  '/form-builder/$templateId': typeof AuthenticatedFormBuilderTemplateIdRoute
   '/departments/': typeof AuthenticatedDepartmentsIndexRoute
   '/form-builder/': typeof AuthenticatedFormBuilderIndexRoute
   '/form-templates/': typeof AuthenticatedFormTemplatesIndexRoute
@@ -88,6 +96,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/': typeof AuthenticatedIndexRoute
+  '/form-builder/$templateId': typeof AuthenticatedFormBuilderTemplateIdRoute
   '/departments': typeof AuthenticatedDepartmentsIndexRoute
   '/form-builder': typeof AuthenticatedFormBuilderIndexRoute
   '/form-templates': typeof AuthenticatedFormTemplatesIndexRoute
@@ -101,6 +110,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/form-builder/$templateId': typeof AuthenticatedFormBuilderTemplateIdRoute
   '/_authenticated/departments/': typeof AuthenticatedDepartmentsIndexRoute
   '/_authenticated/form-builder/': typeof AuthenticatedFormBuilderIndexRoute
   '/_authenticated/form-templates/': typeof AuthenticatedFormTemplatesIndexRoute
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/form-builder/$templateId'
     | '/departments/'
     | '/form-builder/'
     | '/form-templates/'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
   to:
     | '/login'
     | '/'
+    | '/form-builder/$templateId'
     | '/departments'
     | '/form-builder'
     | '/form-templates'
@@ -137,6 +149,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/_authenticated/'
+    | '/_authenticated/form-builder/$templateId'
     | '/_authenticated/departments/'
     | '/_authenticated/form-builder/'
     | '/_authenticated/form-templates/'
@@ -223,11 +236,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDepartmentsIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/form-builder/$templateId': {
+      id: '/_authenticated/form-builder/$templateId'
+      path: '/form-builder/$templateId'
+      fullPath: '/form-builder/$templateId'
+      preLoaderRoute: typeof AuthenticatedFormBuilderTemplateIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedFormBuilderTemplateIdRoute: typeof AuthenticatedFormBuilderTemplateIdRoute
   AuthenticatedDepartmentsIndexRoute: typeof AuthenticatedDepartmentsIndexRoute
   AuthenticatedFormBuilderIndexRoute: typeof AuthenticatedFormBuilderIndexRoute
   AuthenticatedFormTemplatesIndexRoute: typeof AuthenticatedFormTemplatesIndexRoute
@@ -239,6 +260,8 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedFormBuilderTemplateIdRoute:
+    AuthenticatedFormBuilderTemplateIdRoute,
   AuthenticatedDepartmentsIndexRoute: AuthenticatedDepartmentsIndexRoute,
   AuthenticatedFormBuilderIndexRoute: AuthenticatedFormBuilderIndexRoute,
   AuthenticatedFormTemplatesIndexRoute: AuthenticatedFormTemplatesIndexRoute,
