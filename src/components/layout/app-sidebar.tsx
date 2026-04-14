@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Building2, Users2, ShieldCheck, Settings, LayoutTemplate } from 'lucide-react';
+import { LayoutDashboard, Users, Building2, Users2, ShieldCheck, Settings, LayoutTemplate, FileText, ClipboardList } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -13,7 +13,14 @@ import {
 } from '@/components/ui/sidebar';
 import { Link, useLocation } from '@tanstack/react-router';
 
-const navItems = [
+type NavItem = {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+  activePaths?: string[];
+};
+
+const navItems: NavItem[] = [
   {
     title: 'Dashboard',
     url: '/',
@@ -48,14 +55,26 @@ const navItems = [
     title: 'Form Templates',
     url: '/form-templates',
     icon: LayoutTemplate,
+    activePaths: ['/form-templates', '/form-builder'],
+  },
+  {
+    title: 'Forms',
+    url: '/forms',
+    icon: FileText,
+  },
+  {
+    title: 'Submissions',
+    url: '/submissions',
+    icon: ClipboardList,
   },
 ];
 
-function isNavActive(pathname: string, itemUrl: string): boolean {
-  if (itemUrl === '/') {
-    return pathname === '/';
-  }
-  return pathname === itemUrl || pathname === `${itemUrl}/`;
+function isNavActive(pathname: string, item: NavItem): boolean {
+  const paths = item.activePaths ?? [item.url];
+  return paths.some((p) => {
+    if (p === '/') return pathname === '/';
+    return pathname === p || pathname.startsWith(`${p}/`);
+  });
 }
 
 export function AppSidebar() {
@@ -80,7 +99,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    isActive={isNavActive(location.pathname, item.url)}
+                    isActive={isNavActive(location.pathname, item)}
                     tooltip={item.title}
                   >
                     <Link to={item.url}>

@@ -48,6 +48,27 @@ export interface FormTemplate {
   updated_at: string;
 }
 
+export interface FormSubmissionVersion {
+  id: number;
+  submission_id: number;
+  user_id: number | null;
+  user?: User | null;
+  content: Record<string, unknown>;
+  version_number: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FormSubmission {
+  id: number;
+  form_template_id: number;
+  current_version_id: number | null;
+  template?: FormTemplate | null;
+  current_version?: FormSubmissionVersion | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   links: {

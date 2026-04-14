@@ -129,3 +129,127 @@
     @apply font-sans;
   }
 }
+
+/* RJSF form styles to match shadcn/ui aesthetic */
+@layer components {
+  .rjsf-container .rjsf {
+    @apply space-y-5;
+  }
+
+  .rjsf-container .form-group {
+    @apply space-y-1.5;
+  }
+
+  .rjsf-container .control-label,
+  .rjsf-container legend {
+    @apply text-sm font-medium text-foreground leading-none;
+  }
+
+  .rjsf-container .required {
+    @apply text-destructive ml-0.5;
+  }
+
+  .rjsf-container input[type="text"],
+  .rjsf-container input[type="email"],
+  .rjsf-container input[type="password"],
+  .rjsf-container input[type="number"],
+  .rjsf-container input[type="url"],
+  .rjsf-container input[type="tel"],
+  .rjsf-container input[type="date"],
+  .rjsf-container input[type="datetime-local"],
+  .rjsf-container textarea,
+  .rjsf-container select {
+    @apply flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .rjsf-container textarea {
+    @apply min-h-20 resize-y;
+  }
+
+  .rjsf-container select {
+    @apply h-10 appearance-none;
+  }
+
+  .rjsf-container input[type="checkbox"],
+  .rjsf-container input[type="radio"] {
+    @apply h-4 w-4 rounded border-input accent-primary cursor-pointer;
+  }
+
+  .rjsf-container .checkbox label,
+  .rjsf-container .radio label {
+    @apply flex items-center gap-2 text-sm font-normal cursor-pointer;
+  }
+
+  .rjsf-container .checkboxes .checkbox,
+  .rjsf-container .field-radio-group .radio {
+    @apply mb-1;
+  }
+
+  .rjsf-container fieldset {
+    @apply rounded-lg border border-border p-4 space-y-4;
+  }
+
+  .rjsf-container fieldset > legend {
+    @apply px-2 text-sm font-semibold;
+  }
+
+  .rjsf-container .field-description,
+  .rjsf-container .help-block {
+    @apply text-xs text-muted-foreground;
+  }
+
+  .rjsf-container .text-danger,
+  .rjsf-container .error-detail li {
+    @apply text-xs text-destructive;
+  }
+
+  .rjsf-container .error-detail {
+    @apply list-none p-0 m-0 mt-1 space-y-0.5;
+  }
+
+  .rjsf-container .has-error input,
+  .rjsf-container .has-error textarea,
+  .rjsf-container .has-error select {
+    @apply border-destructive focus-visible:ring-destructive;
+  }
+
+  .rjsf-container .array-item-list {
+    @apply space-y-3;
+  }
+
+  .rjsf-container .array-item {
+    @apply flex items-start gap-2;
+  }
+
+  .rjsf-container .array-item > div:first-child {
+    @apply flex-1;
+  }
+
+  .rjsf-container .array-item-toolbox {
+    @apply flex flex-col gap-1 pt-7;
+  }
+
+  .rjsf-container .array-item-toolbox .btn {
+    @apply inline-flex items-center justify-center rounded-md text-xs font-medium h-7 w-7 border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors;
+  }
+
+  .rjsf-container .array-item-add {
+    @apply mt-2;
+  }
+
+  .rjsf-container .array-item-add .btn-add {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 border border-dashed border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors;
+  }
+
+  .rjsf-container .btn-group .btn {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .rjsf-container .panel.panel-danger {
+    @apply rounded-lg border border-destructive/50 bg-destructive/5 p-4;
+  }
+
+  .rjsf-container .panel-heading {
+    @apply text-sm font-semibold text-destructive mb-2;
+  }
+}
