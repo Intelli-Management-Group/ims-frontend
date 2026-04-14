@@ -42,10 +42,10 @@ function SubmissionsPage() {
   const columns = [
     {
       id: 'template',
-      header: 'Form',
+      header: 'Form Name',
       cell: ({ row }: { row: { original: FormSubmission } }) => (
         <div className="font-medium">
-          {row.original.template?.name ?? `Template #${row.original.form_template_id}`}
+          {row.original.current_version?.form_name ?? row.original.template?.name ?? `Template #${row.original.form_template_id}`}
         </div>
       ),
     },

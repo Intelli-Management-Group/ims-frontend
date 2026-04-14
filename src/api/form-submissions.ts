@@ -20,6 +20,7 @@ export const formSubmissionsApi = {
 
   createFormSubmission: async (payload: {
     form_template_id: number;
+    form_name: string;
     content: Record<string, unknown>;
   }) => {
     const { data } = await apiClient.post<{ data: FormSubmission }>('/form-submissions', payload);

@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import Form from "@rjsf/core";
 import validator from "@rjsf/validator-ajv8";
 import type { IChangeEvent } from "@rjsf/core";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { formTemplatesApi } from "@/api/form-templates";
@@ -11,6 +11,8 @@ import { useBreadcrumb } from "@/hooks/use-breadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/_authenticated/forms/$templateId")({
 	component: FormFillPage,
@@ -23,6 +25,8 @@ function FormFillPage() {
 
 	const numericId = Number(templateId);
 
+	const [formName, setFormName] = useState("");
+
 	const {
 		data: template,
 		isLoading,
@@ -33,6 +37,12 @@ function FormFillPage() {
 		enabled: !!numericId,
 		retry: false,
 	});
+
+	// useEffect(() => {
+	// 	if (template && !formName) {
+	// 		setFormName(template.name);
+	// 	}
+	// }, [template]);
 
 	useEffect(() => {
 		if (!numericId) {
@@ -62,6 +72,7 @@ function FormFillPage() {
 		mutationFn: (content: Record<string, unknown>) =>
 			formSubmissionsApi.createFormSubmission({
 				form_template_id: numericId,
+				form_name: formName,
 				content,
 			}),
 		onSuccess: () => {
@@ -120,10 +131,26 @@ function FormFillPage() {
 				</p>
 			</div>
 
+			<div className="space-y-2">
+				<Label htmlFor="formName" className="gap-0.5">
+					Form Name <span className="text-destructive">*</span>
+				</Label>
+				<Input
+					id="formName"
+					value={formName}
+					onChange={(e) => setFormName(e.target.value)}
+					placeholder="Enter form name"
+					disabled={isSubmitting}
+					required
+					form="template-form"
+				/>
+			</div>
+
 			<div className="rjsf-container">
 				<Form
-					schema={template.json_schema as object}
-					uiSchema={template.ui_schema as object}
+					id="template-form"
+					schema={template.json_schema as any}
+					uiSchema={template.ui_schema as any}
 					validator={validator}
 					onSubmit={handleSubmit}
 					disabled={isSubmitting}

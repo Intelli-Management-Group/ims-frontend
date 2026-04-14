@@ -93,11 +93,11 @@ function SubmissionDetailPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <h2 className="text-2xl font-bold tracking-tight">
-            {submission.template.name}
+            {submission.current_version.form_name}
           </h2>
         </div>
         <p className="text-muted-foreground text-sm">
-          Version {submission.current_version.version_number}
+          Template: {submission.template.name} — Version {submission.current_version.version_number}
           {submission.current_version.user?.name &&
             ` — submitted by ${submission.current_version.user.name}`}
         </p>
@@ -105,8 +105,8 @@ function SubmissionDetailPage() {
 
       <div className="rjsf-container">
         <Form
-          schema={submission.template.json_schema as object}
-          uiSchema={submission.template.ui_schema as object}
+          schema={submission.template.json_schema as any}
+          uiSchema={submission.template.ui_schema as any}
           formData={submission.current_version.content}
           validator={validator}
           disabled

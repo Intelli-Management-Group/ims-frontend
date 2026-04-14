@@ -53,6 +53,7 @@ export interface FormSubmissionVersion {
   submission_id: number;
   user_id: number | null;
   user?: User | null;
+  form_name: string;
   content: Record<string, unknown>;
   version_number: number;
   created_at: string;
