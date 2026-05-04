@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import Form from '@rjsf/core';
+import Form from '@rjsf/shadcn';
 import validator from '@rjsf/validator-ajv8';
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';

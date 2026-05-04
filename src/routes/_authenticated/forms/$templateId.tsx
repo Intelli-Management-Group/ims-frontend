@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import Form from "@rjsf/core";
+import Form from "@rjsf/shadcn";
 import validator from "@rjsf/validator-ajv8";
 import type { IChangeEvent } from "@rjsf/core";
 import { useEffect, useState } from "react";
