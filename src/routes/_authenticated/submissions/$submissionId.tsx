@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import Form from '@rjsf/shadcn';
 import validator from '@rjsf/validator-ajv8';
 import { useEffect } from 'react';
@@ -15,6 +15,10 @@ export const Route = createFileRoute('/_authenticated/submissions/$submissionId'
 });
 
 function SubmissionDetailPage() {
+  const isEditRoute = useRouterState({
+    select: (state) => state.location.pathname.endsWith('/edit'),
+  });
+
   const { submissionId } = Route.useParams();
   const navigate = useNavigate();
   const { setBreadcrumbs } = useBreadcrumb();
@@ -28,7 +32,7 @@ function SubmissionDetailPage() {
   } = useQuery({
     queryKey: ['form-submission', numericId],
     queryFn: () => formSubmissionsApi.getFormSubmission(numericId),
-    enabled: !!numericId,
+    enabled: !!numericId && !isEditRoute,
     retry: false,
   });
 
@@ -47,7 +51,7 @@ function SubmissionDetailPage() {
   }, [isError, navigate]);
 
   useEffect(() => {
-    if (submission) {
+    if (!isEditRoute && submission) {
       setBreadcrumbs([
         { label: 'Submissions', path: '/submissions' },
         {
@@ -57,7 +61,11 @@ function SubmissionDetailPage() {
       ]);
     }
     return () => setBreadcrumbs(null);
-  }, [submission, setBreadcrumbs]);
+  }, [submission, setBreadcrumbs, isEditRoute]);
+
+  if (isEditRoute) {
+    return <Outlet />;
+  }
 
   if (isLoading) {
     return (
@@ -105,8 +113,8 @@ function SubmissionDetailPage() {
 
       <div className="rjsf-container">
         <Form
-          schema={submission.template.json_schema as any}
-          uiSchema={submission.template.ui_schema as any}
+          schema={submission.template.json_schema as Record<string, unknown>}
+          uiSchema={submission.template.ui_schema as Record<string, unknown>}
           formData={submission.current_version.content}
           validator={validator}
           disabled

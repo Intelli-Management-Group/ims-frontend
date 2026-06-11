@@ -5,7 +5,7 @@ import { formSubmissionsApi } from '@/api/form-submissions';
 import { DataTable } from '@/components/data-table/data-table';
 import { DataTablePagination } from '@/components/data-table/data-table-pagination';
 import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
+import { Eye, Pencil } from 'lucide-react';
 import type { FormSubmission } from '@/types/api';
 
 export const Route = createFileRoute('/_authenticated/submissions/')({
@@ -89,11 +89,17 @@ function SubmissionsPage() {
       id: 'actions',
       header: '',
       cell: ({ row }: { row: { original: FormSubmission } }) => (
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-1">
           <Button variant="ghost" size="sm" asChild>
             <Link to="/submissions/$submissionId" params={{ submissionId: String(row.original.id) }}>
               <Eye className="h-4 w-4" />
               <span className="sr-only">View</span>
+            </Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/submissions/$submissionId/edit" params={{ submissionId: String(row.original.id) }}>
+              <Pencil className="h-4 w-4" />
+              <span className="sr-only">Edit</span>
             </Link>
           </Button>
         </div>

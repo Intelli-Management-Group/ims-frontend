@@ -26,4 +26,16 @@ export const formSubmissionsApi = {
     const { data } = await apiClient.post<{ data: FormSubmission }>('/form-submissions', payload);
     return data.data;
   },
+
+  updateFormSubmission: async (
+    id: number,
+    payload: {
+      form_name: string;
+      content: Record<string, unknown>;
+      version_number: number;
+    },
+  ) => {
+    const { data } = await apiClient.put<{ data: FormSubmission }>(`/form-submissions/${id}`, payload);
+    return data.data;
+  },
 };
