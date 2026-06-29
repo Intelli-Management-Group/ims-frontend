@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useForm } from '@tanstack/react-form';
+import { type ColumnDef } from '@tanstack/react-table';
 import { teamsApi } from '@/api/teams';
 import { departmentsApi } from '@/api/departments';
 import { DataTable } from '@/components/data-table/data-table';
@@ -12,34 +12,9 @@ import { Input } from '@/components/ui/input';
 import { Plus, Search, Pencil } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
 import { toast } from 'sonner';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Field, FieldContent, FieldError, FieldLabel } from '@/components/ui/field';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import * as z from 'zod';
+import { TeamDialog, type TeamFormValues } from './components/team-dialog';
 import type { Team } from '@/types/api';
 import { useAuth } from '@/hooks/use-auth';
-
-const teamSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  department_id: z.string().min(1, 'Department is required'),
-  is_active: z.boolean(),
-});
-
-type TeamFormValues = z.infer<typeof teamSchema>;
 
 export const Route = createFileRoute('/_authenticated/teams/')({
   component: TeamsPage,
@@ -67,15 +42,12 @@ function TeamsPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (values: TeamFormValues) => teamsApi.createTeam({
-      ...values,
-      department_id: Number(values.department_id)
-    }),
+    mutationFn: (values: TeamFormValues) =>
+      teamsApi.createTeam({ ...values, department_id: Number(values.department_id) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] });
       toast.success('Team created successfully');
       setIsDialogOpen(false);
-      form.reset();
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Failed to create team');
@@ -84,69 +56,70 @@ function TeamsPage() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: TeamFormValues }) =>
-      teamsApi.updateTeam(id, {
-        ...data,
-        department_id: Number(data.department_id)
-      }),
+      teamsApi.updateTeam(id, { ...data, department_id: Number(data.department_id) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teams'] });
       toast.success('Team updated successfully');
       setIsDialogOpen(false);
       setEditingTeam(null);
-      form.reset();
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Failed to update team');
     },
   });
 
-  const form = useForm({
-    defaultValues: {
-      name: '',
-      department_id: '',
-      is_active: true,
-    } as TeamFormValues,
-    validators: {
-      onSubmit: teamSchema,
-    },
-    onSubmit: async ({ value }) => {
+  const handleSubmit = useCallback(
+    (values: TeamFormValues) => {
       if (editingTeam) {
-        updateMutation.mutate({ id: editingTeam.id, data: value });
+        updateMutation.mutate({ id: editingTeam.id, data: values });
       } else {
-        createMutation.mutate(value);
+        createMutation.mutate(values);
       }
     },
-  });
+    [editingTeam, createMutation, updateMutation],
+  );
 
-  const handleEdit = (team: Team) => {
+  const handleEdit = useCallback((team: Team) => {
     setEditingTeam(team);
-    form.setFieldValue('name', team.name);
-    form.setFieldValue('department_id', team.department_id.toString());
-    form.setFieldValue('is_active', !!team.is_active);
     setIsDialogOpen(true);
-  };
+  }, []);
 
-  const columns = [
-    {
-      accessorKey: 'name',
-      header: 'Name',
-      cell: ({ row }: any) => <div className="font-medium">{row.getValue('name')}</div>,
-    },
-    {
-      accessorKey: 'department.name',
-      header: 'Department',
-      cell: ({ row }: any) => <div>{row.original.department?.name || '-'}</div>,
-    },
-    {
-      accessorKey: 'is_active',
-      header: 'Status',
-      cell: ({ row }: any) => <StatusBadge isActive={!!row.getValue('is_active')} />,
-    },
-    {
-      id: 'edit',
-      header: 'Edit',
-      cell: ({ row }: any) => (
-        <div className="flex items-center gap-2">
+  const handleAddNew = useCallback(() => {
+    setEditingTeam(null);
+    setIsDialogOpen(true);
+  }, []);
+
+  const handleDialogOpenChange = useCallback((open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) setEditingTeam(null);
+  }, []);
+
+  const handlePerPageChange = useCallback((val: number) => {
+    setPerPage(val);
+    setPage(1);
+  }, []);
+
+  const columns = useMemo<ColumnDef<Team>[]>(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'Name',
+        cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
+      },
+      {
+        accessorKey: 'department.name',
+        header: 'Department',
+        cell: ({ row }) => <div>{row.original.department?.name ?? '-'}</div>,
+      },
+      {
+        accessorKey: 'is_active',
+        header: 'Status',
+        cell: ({ row }) => <StatusBadge isActive={!!row.getValue('is_active')} />,
+      },
+      {
+        id: 'edit',
+        header: 'Edit',
+        cell: ({ row }) => (
           <Button
             variant="ghost"
             size="icon"
@@ -155,10 +128,14 @@ function TeamsPage() {
           >
             <Pencil className="h-4 w-4" />
           </Button>
-        </div>
-      ),
-    },
-  ];
+        ),
+      },
+    ],
+    [isAdmin, handleEdit],
+  );
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
+  const departments = departmentsData?.data ?? [];
 
   return (
     <div className="space-y-4">
@@ -167,11 +144,7 @@ function TeamsPage() {
           <h2 className="text-2xl font-bold tracking-tight">Teams</h2>
           <p className="text-muted-foreground">Manage your organization's teams</p>
         </div>
-        <Button onClick={() => {
-          setEditingTeam(null);
-          form.reset({ name: '', department_id: '', is_active: true });
-          setIsDialogOpen(true);
-        }} disabled={!isAdmin}>
+        <Button onClick={handleAddNew} disabled={!isAdmin}>
           <Plus className="mr-2 h-4 w-4" /> Add Team
         </Button>
       </div>
@@ -188,11 +161,7 @@ function TeamsPage() {
         </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={data?.data || []}
-        isLoading={isLoading}
-      />
+      <DataTable columns={columns} data={data?.data ?? []} isLoading={isLoading} />
 
       {data && (
         <DataTablePagination
@@ -200,114 +169,21 @@ function TeamsPage() {
           lastPage={data.meta.last_page}
           onPageChange={setPage}
           perPage={perPage}
-          onPerPageChange={(val) => {
-            setPerPage(val);
-            setPage(1);
-          }}
+          onPerPageChange={handlePerPageChange}
           total={data.meta.total}
         />
       )}
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingTeam ? 'Edit Team' : 'Add Team'}</DialogTitle>
-            <DialogDescription>
-              {editingTeam
-                ? 'Update the team details below.'
-                : 'Fill in the details to create a new team.'}
-            </DialogDescription>
-          </DialogHeader>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              form.handleSubmit();
-            }}
-            className="space-y-4"
-          >
-            <form.Field
-              name="name"
-              children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !!field.state.meta.errors.length;
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>Name</FieldLabel>
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      placeholder="Frontend Team"
-                      aria-invalid={isInvalid}
-                    />
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                  </Field>
-                );
-              }}
-            />
-            <form.Field
-              name="department_id"
-              children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !!field.state.meta.errors.length;
-                return (
-                  <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>Department</FieldLabel>
-                    <Select
-                      name={field.name}
-                      value={field.state.value}
-                      onValueChange={field.handleChange}
-                    >
-                      <SelectTrigger id={field.name} aria-invalid={isInvalid}>
-                        <SelectValue placeholder="Select a department" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {departmentsData?.data.map((dept) => (
-                          <SelectItem key={dept.id} value={dept.id.toString()}>
-                            {dept.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                  </Field>
-                );
-              }}
-            />
-            <form.Field
-              name="is_active"
-              children={(field) => {
-                const isInvalid = field.state.meta.isTouched && !!field.state.meta.errors.length;
-                return (
-                  <Field orientation="horizontal" data-invalid={isInvalid} className="items-center justify-between rounded-lg border p-3 shadow-sm">
-                    <FieldContent>
-                      <FieldLabel htmlFor={field.name}>Active Status</FieldLabel>
-                      <div className="text-sm text-muted-foreground">
-                        Enable or disable this team
-                      </div>
-                    </FieldContent>
-                    <Switch
-                      id={field.name}
-                      checked={field.state.value}
-                      onCheckedChange={field.handleChange}
-                      aria-invalid={isInvalid}
-                    />
-                  </Field>
-                );
-              }}
-            />
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                {editingTeam ? 'Update' : 'Create'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {isDialogOpen && (
+        <TeamDialog
+          open={isDialogOpen}
+          onOpenChange={handleDialogOpenChange}
+          team={editingTeam}
+          departments={departments}
+          isPending={isPending}
+          onSubmit={handleSubmit}
+        />
+      )}
     </div>
   );
 }
