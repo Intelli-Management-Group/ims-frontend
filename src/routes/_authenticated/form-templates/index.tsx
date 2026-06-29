@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { type ColumnDef } from '@tanstack/react-table';
 import { formTemplatesApi } from '@/api/form-templates';
 import { DataTable } from '@/components/data-table/data-table';
 import { DataTablePagination } from '@/components/data-table/data-table-pagination';
@@ -16,7 +17,7 @@ export const Route = createFileRoute('/_authenticated/form-templates/')({
   component: FormTemplatesPage,
 });
 
-function formatUpdatedAt(iso: string): string {
+function formatDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString();
   } catch {
@@ -34,61 +35,64 @@ function FormTemplatesPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['form-templates', page, perPage, debouncedSearch],
     queryFn: () =>
-      formTemplatesApi.getFormTemplates({
-        page,
-        per_page: perPage,
-        search: debouncedSearch,
-      }),
+      formTemplatesApi.getFormTemplates({ page, per_page: perPage, search: debouncedSearch }),
   });
 
-  const columns = [
-    {
-      accessorKey: 'name',
-      header: 'Name',
-      cell: ({ row }: { row: { getValue: (key: string) => unknown } }) => (
-        <div className="font-medium">{row.getValue('name') as string}</div>
-      ),
-    },
-    {
-      accessorKey: 'is_active',
-      header: 'Status',
-      cell: ({ row }: { row: { getValue: (key: string) => unknown } }) => (
-        <StatusBadge isActive={!!row.getValue('is_active')} />
-      ),
-    },
-    {
-      id: 'creator',
-      header: 'Created by',
-      cell: ({ row }: { row: { original: FormTemplate } }) => (
-        <span className="text-muted-foreground">{row.original.creator?.name ?? '—'}</span>
-      ),
-    },
-    {
-      accessorKey: 'updated_at',
-      header: 'Updated',
-      cell: ({ row }: { row: { getValue: (key: string) => unknown } }) => (
-        <span className="text-muted-foreground">
-          {formatUpdatedAt(row.getValue('updated_at') as string)}
-        </span>
-      ),
-    },
-    ...(isAdmin
-      ? [
-          {
-            id: 'actions',
-            header: '',
-            cell: ({ row }: { row: { original: FormTemplate } }) => (
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/form-builder/$templateId" params={{ templateId: String(row.original.id) }}>
-                  <Pencil className="h-4 w-4" />
-                  <span className="sr-only">Edit</span>
-                </Link>
-              </Button>
-            ),
-          },
-        ]
-      : []),
-  ];
+  const handlePerPageChange = useCallback((val: number) => {
+    setPerPage(val);
+    setPage(1);
+  }, []);
+
+  const columns = useMemo<ColumnDef<FormTemplate>[]>(() => {
+    const base: ColumnDef<FormTemplate>[] = [
+      {
+        accessorKey: 'name',
+        header: 'Name',
+        cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
+      },
+      {
+        accessorKey: 'is_active',
+        header: 'Status',
+        cell: ({ row }) => <StatusBadge isActive={!!row.getValue('is_active')} />,
+      },
+      {
+        id: 'creator',
+        header: 'Created by',
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">{row.original.creator?.name ?? '—'}</span>
+        ),
+      },
+      {
+        accessorKey: 'updated_at',
+        header: 'Updated',
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {formatDate(row.getValue('updated_at'))}
+          </span>
+        ),
+      },
+    ];
+
+    if (isAdmin) {
+      base.push({
+        id: 'actions',
+        header: '',
+        cell: ({ row }) => (
+          <Button variant="ghost" size="sm" asChild>
+            <Link
+              to="/form-builder/$templateId"
+              params={{ templateId: String(row.original.id) }}
+            >
+              <Pencil className="h-4 w-4" />
+              <span className="sr-only">Edit</span>
+            </Link>
+          </Button>
+        ),
+      });
+    }
+
+    return base;
+  }, [isAdmin]);
 
   return (
     <div className="space-y-4">
@@ -97,17 +101,17 @@ function FormTemplatesPage() {
           <h2 className="text-2xl font-bold tracking-tight">Form Templates</h2>
           <p className="text-muted-foreground">Manage reusable form definitions</p>
         </div>
-        {isAdmin ? (
-          <Button asChild>
+        <Button asChild={isAdmin} disabled={!isAdmin}>
+          {isAdmin ? (
             <Link to="/form-builder">
               <Plus className="mr-2 h-4 w-4" /> Add Template
             </Link>
-          </Button>
-        ) : (
-          <Button disabled>
-            <Plus className="mr-2 h-4 w-4" /> Add Template
-          </Button>
-        )}
+          ) : (
+            <span>
+              <Plus className="mr-2 h-4 w-4" /> Add Template
+            </span>
+          )}
+        </Button>
       </div>
 
       <div className="flex items-center gap-2">
@@ -122,7 +126,7 @@ function FormTemplatesPage() {
         </div>
       </div>
 
-      <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
+      <DataTable columns={columns} data={data?.data ?? []} isLoading={isLoading} />
 
       {data && (
         <DataTablePagination
@@ -130,10 +134,7 @@ function FormTemplatesPage() {
           lastPage={data.meta.last_page}
           onPageChange={setPage}
           perPage={perPage}
-          onPerPageChange={(val) => {
-            setPerPage(val);
-            setPage(1);
-          }}
+          onPerPageChange={handlePerPageChange}
           total={data.meta.total}
         />
       )}
