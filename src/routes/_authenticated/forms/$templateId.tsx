@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import Form from "@rjsf/shadcn";
 import validator from "@rjsf/validator-ajv8";
 import type { IChangeEvent } from "@rjsf/core";
+import type { RJSFSchema, UiSchema } from "@rjsf/utils";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -24,8 +25,10 @@ function FormFillPage() {
 	const { setBreadcrumbs } = useBreadcrumb();
 
 	const numericId = Number(templateId);
+	const isValidId = templateId !== "" && Number.isFinite(numericId);
 
 	const [formName, setFormName] = useState("");
+	const [formNameError, setFormNameError] = useState(false);
 
 	const {
 		data: template,
@@ -34,22 +37,16 @@ function FormFillPage() {
 	} = useQuery({
 		queryKey: ["form-template", numericId],
 		queryFn: () => formTemplatesApi.getFormTemplate(numericId),
-		enabled: !!numericId,
+		enabled: isValidId,
 		retry: false,
 	});
 
-	// useEffect(() => {
-	// 	if (template && !formName) {
-	// 		setFormName(template.name);
-	// 	}
-	// }, [template]);
-
 	useEffect(() => {
-		if (!numericId) {
+		if (!isValidId) {
 			toast.error("Invalid template ID");
 			navigate({ to: "/forms" });
 		}
-	}, [numericId, navigate]);
+	}, [isValidId, navigate]);
 
 	useEffect(() => {
 		if (isError) {
@@ -72,7 +69,7 @@ function FormFillPage() {
 		mutationFn: (content: Record<string, unknown>) =>
 			formSubmissionsApi.createFormSubmission({
 				form_template_id: numericId,
-				form_name: formName,
+				form_name: formName.trim(),
 				content,
 			}),
 		onSuccess: () => {
@@ -85,6 +82,11 @@ function FormFillPage() {
 	});
 
 	const handleSubmit = ({ formData }: IChangeEvent) => {
+		if (!formName.trim()) {
+			setFormNameError(true);
+			toast.error("Please enter a form name");
+			return;
+		}
 		if (formData) {
 			submitForm(formData as Record<string, unknown>);
 		}
@@ -138,19 +140,26 @@ function FormFillPage() {
 				<Input
 					id="formName"
 					value={formName}
-					onChange={(e) => setFormName(e.target.value)}
+					onChange={(e) => {
+						setFormName(e.target.value);
+						if (formNameError) setFormNameError(false);
+					}}
 					placeholder="Enter form name"
 					disabled={isSubmitting}
+					aria-invalid={formNameError}
 					required
 					form="template-form"
 				/>
+				{formNameError && (
+					<p className="text-destructive text-sm">Form name is required.</p>
+				)}
 			</div>
 
 			<div className="rjsf-container">
 				<Form
 					id="template-form"
-					schema={template.json_schema as any}
-					uiSchema={template.ui_schema as any}
+					schema={template.json_schema as RJSFSchema}
+					uiSchema={template.ui_schema as UiSchema}
 					validator={validator}
 					onSubmit={handleSubmit}
 					disabled={isSubmitting}
