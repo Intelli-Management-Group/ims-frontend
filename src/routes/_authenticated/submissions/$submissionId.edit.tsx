@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import Form from '@rjsf/shadcn';
 import validator from '@rjsf/validator-ajv8';
 import type { IChangeEvent } from '@rjsf/core';
+import type { RJSFSchema, UiSchema } from '@rjsf/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
@@ -41,28 +42,31 @@ function SubmissionEditForm({
   const current = submission.current_version;
 
   const [formName, setFormName] = useState(current.form_name);
-  const [formData, setFormData] = useState<Record<string, unknown>>(() => ({
-    ...current.content,
-  }));
-  const [versionNumber] = useState(current.version_number);
+  const [formNameError, setFormNameError] = useState(false);
 
   const template = submission.template;
-  const schema = template.json_schema as Record<string, unknown>;
-  const uiSchema = template.ui_schema as Record<string, unknown>;
+  const schema = template.json_schema as RJSFSchema;
+  const uiSchema = template.ui_schema as UiSchema;
+
+  // versionNumber is pinned to the version this form was opened against.
+  // We rely on the parent remounting this component (via `key`) whenever
+  // the underlying current_version changes, rather than tracking it live,
+  // so a stale value here always reflects the version the user is actually
+  // editing against and lets the server's 409 check do its job correctly.
+  const versionNumber = current.version_number;
 
   const handleSubmit = ({ formData: nextData }: IChangeEvent) => {
+    if (!formName.trim()) {
+      setFormNameError(true);
+      toast.error('Please enter a form name');
+      return;
+    }
     if (nextData !== undefined) {
       onSave({
-        formName,
+        formName: formName.trim(),
         content: nextData as Record<string, unknown>,
         versionNumber,
       });
-    }
-  };
-
-  const handleChange = ({ formData: nextData }: IChangeEvent) => {
-    if (nextData !== undefined) {
-      setFormData(nextData as Record<string, unknown>);
     }
   };
 
@@ -92,12 +96,17 @@ function SubmissionEditForm({
         <Input
           id="editFormName"
           value={formName}
-          onChange={(e) => setFormName(e.target.value)}
+          onChange={(e) => {
+            setFormName(e.target.value);
+            if (formNameError) setFormNameError(false);
+          }}
           placeholder="Enter form name"
           disabled={isSubmitting}
+          aria-invalid={formNameError}
           required
           form="edit-submission-form"
         />
+        {formNameError && <p className="text-destructive text-sm">Form name is required.</p>}
       </div>
 
       <div className="rjsf-container">
@@ -105,9 +114,8 @@ function SubmissionEditForm({
           id="edit-submission-form"
           schema={schema}
           uiSchema={uiSchema}
-          formData={formData}
+          formData={current.content}
           validator={validator}
-          onChange={handleChange}
           onSubmit={handleSubmit}
           disabled={isSubmitting}
           omitExtraData
@@ -131,6 +139,7 @@ function SubmissionEditPage() {
   const { setBreadcrumbs } = useBreadcrumb();
 
   const numericId = Number(submissionId);
+  const isValidId = submissionId !== '' && Number.isFinite(numericId);
 
   const {
     data: submission,
@@ -139,16 +148,16 @@ function SubmissionEditPage() {
   } = useQuery({
     queryKey: ['form-submission', numericId],
     queryFn: () => formSubmissionsApi.getFormSubmission(numericId),
-    enabled: !!numericId,
+    enabled: isValidId,
     retry: false,
   });
 
   useEffect(() => {
-    if (!numericId) {
+    if (!isValidId) {
       toast.error('Invalid submission ID');
       navigate({ to: '/submissions' });
     }
-  }, [numericId, navigate]);
+  }, [isValidId, navigate]);
 
   useEffect(() => {
     if (isError) {

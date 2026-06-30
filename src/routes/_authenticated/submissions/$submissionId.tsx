@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import Form from '@rjsf/shadcn';
 import validator from '@rjsf/validator-ajv8';
+import type { RJSFSchema, UiSchema } from '@rjsf/utils';
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -24,6 +25,7 @@ function SubmissionDetailPage() {
   const { setBreadcrumbs } = useBreadcrumb();
 
   const numericId = Number(submissionId);
+  const isValidId = submissionId !== '' && Number.isFinite(numericId);
 
   const {
     data: submission,
@@ -32,16 +34,16 @@ function SubmissionDetailPage() {
   } = useQuery({
     queryKey: ['form-submission', numericId],
     queryFn: () => formSubmissionsApi.getFormSubmission(numericId),
-    enabled: !!numericId && !isEditRoute,
+    enabled: isValidId && !isEditRoute,
     retry: false,
   });
 
   useEffect(() => {
-    if (!numericId) {
+    if (!isValidId) {
       toast.error('Invalid submission ID');
       navigate({ to: '/submissions' });
     }
-  }, [numericId, navigate]);
+  }, [isValidId, navigate]);
 
   useEffect(() => {
     if (isError) {
@@ -113,8 +115,8 @@ function SubmissionDetailPage() {
 
       <div className="rjsf-container">
         <Form
-          schema={submission.template.json_schema as Record<string, unknown>}
-          uiSchema={submission.template.ui_schema as Record<string, unknown>}
+          schema={submission.template.json_schema as RJSFSchema}
+          uiSchema={submission.template.ui_schema as UiSchema}
           formData={submission.current_version.content}
           validator={validator}
           disabled
