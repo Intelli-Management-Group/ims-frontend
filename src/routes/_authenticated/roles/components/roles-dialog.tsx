@@ -1,5 +1,3 @@
-import { useForm } from '@tanstack/react-form';
-import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -13,13 +11,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import type { Role } from '@/types/api';
+import { useRoleDialog, type RoleFormValues } from './useRoleDialog';
 
-const roleSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  is_active: z.boolean(),
-});
-
-export type RoleFormValues = z.infer<typeof roleSchema>;
+export type { RoleFormValues };
 
 interface RoleDialogProps {
   open: boolean;
@@ -30,20 +24,7 @@ interface RoleDialogProps {
 }
 
 export function RoleDialog({ open, onOpenChange, role, isPending, onSubmit }: RoleDialogProps) {
-  const isEditing = !!role;
-
-  const form = useForm({
-    defaultValues: {
-      name: role?.name ?? '',
-      is_active: role?.is_active ?? true,
-    } as RoleFormValues,
-    validators: {
-      onSubmit: roleSchema,
-    },
-    onSubmit: async ({ value }) => {
-      onSubmit(value);
-    },
-  });
+  const { form, isEditing } = useRoleDialog({ role, onSubmit });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
