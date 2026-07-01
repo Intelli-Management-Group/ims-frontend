@@ -1,5 +1,3 @@
-import { useForm } from '@tanstack/react-form';
-import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -13,13 +11,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import type { Department } from '@/types/api';
+import { useDepartmentDialog, type DepartmentFormValues } from './useDepartmentDialog';
 
-const departmentSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  is_active: z.boolean(),
-});
-
-export type DepartmentFormValues = z.infer<typeof departmentSchema>;
+export type { DepartmentFormValues };
 
 interface DepartmentDialogProps {
   open: boolean;
@@ -36,23 +30,7 @@ export function DepartmentDialog({
   isPending,
   onSubmit,
 }: DepartmentDialogProps) {
-  const isEditing = !!department;
-
-  const form = useForm({
-    defaultValues: {
-      name: department?.name ?? '',
-      is_active: department?.is_active ?? true,
-    } as DepartmentFormValues,
-    validators: {
-      onSubmit: departmentSchema,
-    },
-    onSubmit: async ({ value }) => {
-      onSubmit(value);
-    },
-  });
-
-  // Reset form when dialog opens with new department context
-  // (caller should close+reopen the dialog to trigger a fresh mount)
+  const { form, isEditing } = useDepartmentDialog({ department, onSubmit });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
