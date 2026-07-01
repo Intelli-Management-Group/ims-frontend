@@ -1,9 +1,4 @@
-import { createFileRoute, useNavigate, redirect } from '@tanstack/react-router';
-import { useForm } from '@tanstack/react-form';
-import { useState } from 'react';
-import * as z from 'zod';
-import { useAuth } from '../lib/auth';
-import { authApi } from '../api/auth';
+import { createFileRoute } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -14,78 +9,21 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-
-import { toast } from 'sonner';
-
-const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+import { useLoginForm, loginBeforeLoad } from './useLoginForm';
 
 export const Route = createFileRoute('/login')({
-  beforeLoad: () => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('access_token');
-
-      if (token) {
-        throw redirect({ to: '/' });
-      }
-    }
-  },
+  beforeLoad: loginBeforeLoad,
   component: LoginPage,
 });
 
 function LoginPage() {
-  const navigate = useNavigate();
-  const { login } = useAuth();
-
-  const [isLoading, setIsLoading] = useState(false);
-
-  const form = useForm({
-    defaultValues: {
-      email: '',
-      password: '',
-    } satisfies LoginFormValues,
-
-    validators: {
-      onSubmit: loginSchema,
-    },
-
-    onSubmit: async ({ value }) => {
-      setIsLoading(true);
-
-      try {
-        const response = await authApi.login(value);
-        await Promise.resolve(login(response.access_token));
-        toast.success('Logged in successfully');
-        await navigate({
-          to: '/',
-          replace: true,
-        });
-      } catch (error: any) {
-          const message =
-            error?.response?.data?.error ??
-            error?.response?.data?.message ??
-            error?.message ??
-            'Invalid credentials';
-
-          toast.error(message);
-        } finally {
-        setIsLoading(false);
-      }
-    },
-  });
+  const { form, isLoading } = useLoginForm();
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">
-            IMS Login
-          </CardTitle>
-
+          <CardTitle className="text-2xl font-bold">IMS Login</CardTitle>
           <CardDescription>
             Enter your email and password to access the admin panel
           </CardDescription>
@@ -102,14 +40,11 @@ function LoginPage() {
             <form.Field name="email">
               {(field) => {
                 const isInvalid =
-                  field.state.meta.isTouched &&
-                  field.state.meta.errors.length > 0;
+                  field.state.meta.isTouched && field.state.meta.errors.length > 0;
 
                 return (
                   <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>
-                      Email
-                    </FieldLabel>
+                    <FieldLabel htmlFor={field.name}>Email</FieldLabel>
 
                     <Input
                       id={field.name}
@@ -122,16 +57,12 @@ function LoginPage() {
                       placeholder="admin@example.com"
                       value={field.state.value}
                       onBlur={field.handleBlur}
-                      onChange={(e) =>
-                        field.handleChange(e.target.value)
-                      }
+                      onChange={(e) => field.handleChange(e.target.value)}
                       disabled={isLoading}
                       aria-invalid={isInvalid}
                     />
 
-                    {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
                   </Field>
                 );
               }}
@@ -140,14 +71,11 @@ function LoginPage() {
             <form.Field name="password">
               {(field) => {
                 const isInvalid =
-                  field.state.meta.isTouched &&
-                  field.state.meta.errors.length > 0;
+                  field.state.meta.isTouched && field.state.meta.errors.length > 0;
 
                 return (
                   <Field data-invalid={isInvalid}>
-                    <FieldLabel htmlFor={field.name}>
-                      Password
-                    </FieldLabel>
+                    <FieldLabel htmlFor={field.name}>Password</FieldLabel>
 
                     <Input
                       id={field.name}
@@ -157,26 +85,18 @@ function LoginPage() {
                       placeholder="••••••••"
                       value={field.state.value}
                       onBlur={field.handleBlur}
-                      onChange={(e) =>
-                        field.handleChange(e.target.value)
-                      }
+                      onChange={(e) => field.handleChange(e.target.value)}
                       disabled={isLoading}
                       aria-invalid={isInvalid}
                     />
 
-                    {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
+                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
                   </Field>
                 );
               }}
             </form.Field>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Logging in...' : 'Login'}
             </Button>
           </form>
