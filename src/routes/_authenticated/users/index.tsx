@@ -1,84 +1,37 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { usersApi } from '@/api/users';
-import { departmentsApi } from '@/api/departments';
-import { teamsApi } from '@/api/teams';
-import { rolesApi } from '@/api/roles';
 import { DataTable } from '@/components/data-table/data-table';
 import { DataTablePagination } from '@/components/data-table/data-table-pagination';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Search } from 'lucide-react';
-import { useDebounce } from '@/hooks/use-debounce';
-import { useAuth } from '@/hooks/use-auth';
-import type { User } from '@/types/api';
 import { UserDialog } from './components/user-dialog';
-import { getUserColumns } from './components/user-columns';
+import { useUsersPage } from './useUsersPage';
 
 export const Route = createFileRoute('/_authenticated/users/')({
   component: UsersPage,
 });
 
 function UsersPage() {
-  const { isAdmin } = useAuth();
+  const {
+    isAdmin,
+    page,
+    setPage,
+    perPage,
+    search,
+    setSearch,
+    isDialogOpen,
+    setIsDialogOpen,
+    editingUser,
+    data,
+    isLoading,
+    departmentsData,
+    teamsData,
+    rolesData,
+    columns,
+    openCreateDialog,
+    handlePerPageChange,
+  } = useUsersPage();
 
-  // -------------------------------------------------------------------------
-  // Pagination & search state
-  // -------------------------------------------------------------------------
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
-  const [search, setSearch] = useState('');
-  const debouncedSearch = useDebounce(search, 500);
-
-  // -------------------------------------------------------------------------
-  // Dialog state
-  // -------------------------------------------------------------------------
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-
-  const openCreateDialog = () => {
-    setEditingUser(null);
-    setIsDialogOpen(true);
-  };
-
-  const openEditDialog = (user: User) => {
-    setEditingUser(user);
-    setIsDialogOpen(true);
-  };
-
-  // -------------------------------------------------------------------------
-  // Queries
-  // -------------------------------------------------------------------------
-  const { data, isLoading } = useQuery({
-    queryKey: ['users', page, perPage, debouncedSearch],
-    queryFn: () =>
-      usersApi.getUsers({ page, per_page: perPage, search: debouncedSearch }),
-  });
-
-  const { data: departmentsData } = useQuery({
-    queryKey: ['departments-all'],
-    queryFn: () => departmentsApi.getDepartments({ per_page: 100 }),
-  });
-
-  const { data: teamsData } = useQuery({
-    queryKey: ['teams-all'],
-    queryFn: () => teamsApi.getTeams({ per_page: 100 }),
-  });
-
-  const { data: rolesData } = useQuery({
-    queryKey: ['roles-all'],
-    queryFn: () => rolesApi.getRoles({ per_page: 100 }),
-  });
-
-  // -------------------------------------------------------------------------
-  // Columns (memoised implicitly — recreated only when isAdmin changes)
-  // -------------------------------------------------------------------------
-  const columns = getUserColumns({ isAdmin, onEdit: openEditDialog });
-
-  // -------------------------------------------------------------------------
-  // Render
-  // -------------------------------------------------------------------------
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -120,10 +73,7 @@ function UsersPage() {
           lastPage={data.meta.last_page}
           onPageChange={setPage}
           perPage={perPage}
-          onPerPageChange={(val) => {
-            setPerPage(val);
-            setPage(1);
-          }}
+          onPerPageChange={handlePerPageChange}
           total={data.meta.total}
         />
       )}
