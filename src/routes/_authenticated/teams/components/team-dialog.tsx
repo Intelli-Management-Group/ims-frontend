@@ -1,5 +1,3 @@
-import { useForm } from '@tanstack/react-form';
-import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -20,14 +18,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { Department, Team } from '@/types/api';
+import { useTeamDialog, type TeamFormValues } from './useTeamDialog';
 
-const teamSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  department_id: z.string().min(1, 'Department is required'),
-  is_active: z.boolean(),
-});
-
-export type TeamFormValues = z.infer<typeof teamSchema>;
+export type { TeamFormValues };
 
 interface TeamDialogProps {
   open: boolean;
@@ -46,21 +39,7 @@ export function TeamDialog({
   isPending,
   onSubmit,
 }: TeamDialogProps) {
-  const isEditing = !!team;
-
-  const form = useForm({
-    defaultValues: {
-      name: team?.name ?? '',
-      department_id: team?.department_id?.toString() ?? '',
-      is_active: team?.is_active ?? true,
-    } as TeamFormValues,
-    validators: {
-      onSubmit: teamSchema,
-    },
-    onSubmit: async ({ value }) => {
-      onSubmit(value);
-    },
-  });
+  const { form, isEditing } = useTeamDialog({ team, onSubmit });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
