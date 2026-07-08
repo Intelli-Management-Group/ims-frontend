@@ -1,94 +1,28 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { formTemplatesApi } from '@/api/form-templates';
 import { DataTable } from '@/components/data-table/data-table';
 import { DataTablePagination } from '@/components/data-table/data-table-pagination';
-import { StatusBadge } from '@/components/shared/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Pencil, Plus, Search } from 'lucide-react';
-import { useDebounce } from '@/hooks/use-debounce';
-import { useAuth } from '@/hooks/use-auth';
-import type { FormTemplate } from '@/types/api';
+import { Plus, Search } from 'lucide-react';
+import { useFormTemplatesPage } from './useFormTemplatesPage';
 
 export const Route = createFileRoute('/_authenticated/form-templates/')({
   component: FormTemplatesPage,
 });
 
-function formatUpdatedAt(iso: string): string {
-  try {
-    return new Date(iso).toLocaleDateString();
-  } catch {
-    return '—';
-  }
-}
-
 function FormTemplatesPage() {
-  const { isAdmin } = useAuth();
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
-  const [search, setSearch] = useState('');
-  const debouncedSearch = useDebounce(search, 500);
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['form-templates', page, perPage, debouncedSearch],
-    queryFn: () =>
-      formTemplatesApi.getFormTemplates({
-        page,
-        per_page: perPage,
-        search: debouncedSearch,
-      }),
-  });
-
-  const columns = [
-    {
-      accessorKey: 'name',
-      header: 'Name',
-      cell: ({ row }: { row: { getValue: (key: string) => unknown } }) => (
-        <div className="font-medium">{row.getValue('name') as string}</div>
-      ),
-    },
-    {
-      accessorKey: 'is_active',
-      header: 'Status',
-      cell: ({ row }: { row: { getValue: (key: string) => unknown } }) => (
-        <StatusBadge isActive={!!row.getValue('is_active')} />
-      ),
-    },
-    {
-      id: 'creator',
-      header: 'Created by',
-      cell: ({ row }: { row: { original: FormTemplate } }) => (
-        <span className="text-muted-foreground">{row.original.creator?.name ?? '—'}</span>
-      ),
-    },
-    {
-      accessorKey: 'updated_at',
-      header: 'Updated',
-      cell: ({ row }: { row: { getValue: (key: string) => unknown } }) => (
-        <span className="text-muted-foreground">
-          {formatUpdatedAt(row.getValue('updated_at') as string)}
-        </span>
-      ),
-    },
-    ...(isAdmin
-      ? [
-          {
-            id: 'actions',
-            header: '',
-            cell: ({ row }: { row: { original: FormTemplate } }) => (
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/form-builder/$templateId" params={{ templateId: String(row.original.id) }}>
-                  <Pencil className="h-4 w-4" />
-                  <span className="sr-only">Edit</span>
-                </Link>
-              </Button>
-            ),
-          },
-        ]
-      : []),
-  ];
+  const {
+    isAdmin,
+    page,
+    setPage,
+    perPage,
+    search,
+    setSearch,
+    data,
+    isLoading,
+    columns,
+    handlePerPageChange,
+  } = useFormTemplatesPage();
 
   return (
     <div className="space-y-4">
@@ -97,17 +31,17 @@ function FormTemplatesPage() {
           <h2 className="text-2xl font-bold tracking-tight">Form Templates</h2>
           <p className="text-muted-foreground">Manage reusable form definitions</p>
         </div>
-        {isAdmin ? (
-          <Button asChild>
+        <Button asChild={isAdmin} disabled={!isAdmin}>
+          {isAdmin ? (
             <Link to="/form-builder">
               <Plus className="mr-2 h-4 w-4" /> Add Template
             </Link>
-          </Button>
-        ) : (
-          <Button disabled>
-            <Plus className="mr-2 h-4 w-4" /> Add Template
-          </Button>
-        )}
+          ) : (
+            <span>
+              <Plus className="mr-2 h-4 w-4" /> Add Template
+            </span>
+          )}
+        </Button>
       </div>
 
       <div className="flex items-center gap-2">
@@ -122,7 +56,7 @@ function FormTemplatesPage() {
         </div>
       </div>
 
-      <DataTable columns={columns} data={data?.data || []} isLoading={isLoading} />
+      <DataTable columns={columns} data={data?.data ?? []} isLoading={isLoading} />
 
       {data && (
         <DataTablePagination
@@ -130,10 +64,7 @@ function FormTemplatesPage() {
           lastPage={data.meta.last_page}
           onPageChange={setPage}
           perPage={perPage}
-          onPerPageChange={(val) => {
-            setPerPage(val);
-            setPage(1);
-          }}
+          onPerPageChange={handlePerPageChange}
           total={data.meta.total}
         />
       )}
