@@ -19,6 +19,11 @@ export function useFormBuilderPage() {
   useEffect(() => {
     resetFormBuilder();
     setTemplateName('');
+
+    return () => {
+      resetFormBuilder();
+      setTemplateName('');
+    };
   }, []);
 
   const handleTemplateNameChange = useCallback((value: string) => {
@@ -58,12 +63,15 @@ export function useFormBuilderPage() {
     }
   }, [isSaving, templateName, jsonSchema, uiSchema]);
 
-  const headerProps = {
-    templateName,
-    onTemplateNameChange: handleTemplateNameChange,
-    isSaving,
-    onSave: handleSave,
-  };
+  const headerProps = useMemo(
+    () => ({
+      templateName,
+      onTemplateNameChange: handleTemplateNameChange,
+      isSaving,
+      onSave: handleSave,
+    }),
+    [templateName, handleTemplateNameChange, isSaving, handleSave],
+  );
 
   return { isMobile, isTablet, headerProps };
 }

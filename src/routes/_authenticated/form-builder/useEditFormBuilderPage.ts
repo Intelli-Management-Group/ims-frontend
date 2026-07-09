@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { formTemplatesApi } from '@/api/form-templates';
 import type { FormElementOrList } from '@/db-collections/form-builder.collections';
@@ -25,20 +25,33 @@ export function useEditFormBuilderPage(templateId: string) {
   const [templateName, setTemplateName] = useState('');
   const { formElements } = useFormBuilderState();
   const { setBreadcrumbs } = useBreadcrumb();
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
+    const requestId = ++requestIdRef.current;
     initializeFormBuilder();
+    setIsLoading(true);
+    setTemplateDbId(null);
+    setTemplateName('');
 
     const numericId = Number(templateId);
     if (!numericId) {
       toast.error('Invalid template ID');
+      setIsLoading(false);
       navigate({ to: '/form-templates' });
-      return;
+      return () => {
+        requestIdRef.current += 1;
+        setBreadcrumbs(null);
+      };
     }
 
-    formTemplatesApi
+    void formTemplatesApi
       .getFormTemplate(numericId)
       .then((template) => {
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
+
         const elements = reverseMapRjsfToFormElements(template.json_schema, template.ui_schema);
         loadFormTemplate(template.name, elements as FormElementOrList[]);
         setTemplateName(template.name);
@@ -49,12 +62,23 @@ export function useEditFormBuilderPage(templateId: string) {
         ]);
       })
       .catch(() => {
+        if (requestId !== requestIdRef.current) {
+          return;
+        }
+
         toast.error('Failed to load template');
         navigate({ to: '/form-templates' });
       })
-      .finally(() => setIsLoading(false));
+      .finally(() => {
+        if (requestId === requestIdRef.current) {
+          setIsLoading(false);
+        }
+      });
 
-    return () => setBreadcrumbs(null);
+    return () => {
+      requestIdRef.current += 1;
+      setBreadcrumbs(null);
+    };
   }, [templateId, navigate, setBreadcrumbs]);
 
   const handleTemplateNameChange = useCallback(
@@ -100,12 +124,15 @@ export function useEditFormBuilderPage(templateId: string) {
     }
   }, [isSaving, templateDbId, templateName, jsonSchema, uiSchema]);
 
-  const headerProps = {
-    templateName,
-    onTemplateNameChange: handleTemplateNameChange,
-    isSaving,
-    onSave: handleSave,
-  };
+  const headerProps = useMemo(
+    () => ({
+      templateName,
+      onTemplateNameChange: handleTemplateNameChange,
+      isSaving,
+      onSave: handleSave,
+    }),
+    [templateName, handleTemplateNameChange, isSaving, handleSave],
+  );
 
   return { isMobile, isTablet, isLoading, headerProps };
 }
