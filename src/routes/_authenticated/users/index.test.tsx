@@ -1,6 +1,8 @@
 import { screen, userEvent, waitFor, within } from '@/test/test-utils';
 import { renderWithRouter } from '@/test/test-utils';
+import { authApi } from '@/api/auth';
 import { usersApi } from '@/api/users';
+import { useAuth } from '@/hooks/use-auth';
 import { departmentsApi } from '@/api/departments';
 import { teamsApi } from '@/api/teams';
 import { rolesApi } from '@/api/roles';
@@ -10,6 +12,7 @@ vi.mock('@/api/users');
 vi.mock('@/api/departments');
 vi.mock('@/api/teams');
 vi.mock('@/api/roles');
+vi.mock('@/hooks/use-auth', () => ({ useAuth: vi.fn() }));
 vi.mock('@/hooks/use-debounce', () => ({ useDebounce: (value: unknown) => value }));
 
 const adminUser: AuthUser = {
@@ -20,6 +23,14 @@ const adminUser: AuthUser = {
   created_at: '',
   updated_at: '',
   role: { id: 1, name: 'admin', is_active: true, created_at: '', updated_at: '' },
+};
+
+const nonAdminUser: AuthUser = {
+  ...adminUser,
+  id: 2,
+  name: 'Viewer',
+  email: 'viewer@example.com',
+  role: { id: 2, name: 'user', is_active: true, created_at: '', updated_at: '' },
 };
 
 const mockDepartments = {
@@ -64,7 +75,18 @@ const mockUsersList = {
 };
 
 describe('Users page', () => {
+  const mockedUseAuth = vi.mocked(useAuth);
+
   beforeEach(() => {
+    vi.mocked(authApi.me).mockResolvedValue(null);
+    mockedUseAuth.mockReturnValue({
+      user: adminUser,
+      isLoading: false,
+      isAuthenticated: true,
+      isAdmin: true,
+      login: vi.fn(),
+      logout: vi.fn(),
+    } as ReturnType<typeof useAuth>);
     vi.mocked(usersApi.getUsers).mockResolvedValue(mockUsersList);
     vi.mocked(departmentsApi.getDepartments).mockResolvedValue(mockDepartments);
     vi.mocked(teamsApi.getTeams).mockResolvedValue(mockTeams);
@@ -114,6 +136,57 @@ describe('Users page', () => {
       expect(screen.getByRole('button', { name: /Add User/i })).toBeInTheDocument();
     });
     expect(screen.getByRole('button', { name: /Add User/i })).not.toBeDisabled();
+  });
+
+  it('non-admin sees Add User disabled and cannot open the dialog', async () => {
+    const user = userEvent.setup();
+    mockedUseAuth.mockReturnValue({
+      user: nonAdminUser,
+      isLoading: false,
+      isAuthenticated: true,
+      isAdmin: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+    } as ReturnType<typeof useAuth>);
+
+    renderWithRouter({ route: '/users', user: nonAdminUser });
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Add User/i })).toBeInTheDocument();
+    });
+
+    const addUserButton = screen.getByRole('button', { name: /Add User/i });
+    await waitFor(() => {
+      expect(addUserButton).toBeDisabled();
+    });
+
+    await user.click(addUserButton);
+
+    expect(screen.queryByRole('dialog', { name: /Add User/i })).not.toBeInTheDocument();
+  });
+
+  it('disables edit actions for non-admin users', async () => {
+    mockedUseAuth.mockReturnValue({
+      user: nonAdminUser,
+      isLoading: false,
+      isAuthenticated: true,
+      isAdmin: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+    } as ReturnType<typeof useAuth>);
+
+    renderWithRouter({ route: '/users', user: nonAdminUser });
+
+    await screen.findAllByText('admin@example.com');
+
+    const table = screen.getByRole('table');
+    const row = within(table)
+      .getAllByRole('row')
+      .find((candidate) => within(candidate).queryByText('admin@example.com') !== null);
+
+    expect(row).toBeDefined();
+    const editButton = within(row as HTMLElement).getByRole('button', { name: /Edit Admin/i });
+    expect(editButton).toBeDisabled();
   });
 
   it('opens Add User dialog and shows validation error for invalid email', async () => {
