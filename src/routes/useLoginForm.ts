@@ -13,6 +13,26 @@ export const loginSchema = z.object({
 
 export type LoginFormValues = z.infer<typeof loginSchema>;
 
+type LoginFieldErrors = Partial<Record<keyof LoginFormValues, string>>;
+
+function getLoginFieldErrors(value: LoginFormValues): LoginFieldErrors | null {
+  const result = loginSchema.safeParse(value);
+
+  if (result.success) {
+    return null;
+  }
+
+  return result.error.issues.reduce<LoginFieldErrors>((errors, issue) => {
+    const fieldName = issue.path[0];
+
+    if (typeof fieldName === 'string' && !errors[fieldName as keyof LoginFormValues]) {
+      errors[fieldName as keyof LoginFormValues] = issue.message;
+    }
+
+    return errors;
+  }, {});
+}
+
 export function loginBeforeLoad() {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('access_token');
@@ -28,6 +48,7 @@ export function useLoginForm() {
   const { login } = useAuth();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<LoginFieldErrors>({});
 
   const form = useForm({
     defaultValues: {
@@ -35,11 +56,15 @@ export function useLoginForm() {
       password: '',
     } satisfies LoginFormValues,
 
-    validators: {
-      onSubmit: loginSchema,
-    },
-
     onSubmit: async ({ value }) => {
+      const validationErrors = getLoginFieldErrors(value);
+
+      if (validationErrors) {
+        setFieldErrors(validationErrors);
+        return;
+      }
+
+      setFieldErrors({});
       setIsLoading(true);
 
       try {
@@ -64,5 +89,5 @@ export function useLoginForm() {
     },
   });
 
-  return { form, isLoading };
+  return { form, isLoading, fieldErrors, handleSubmit: form.handleSubmit, };
 }

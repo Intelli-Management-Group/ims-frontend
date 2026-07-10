@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useLoginForm } from './use-login-form';
+import { useLoginForm } from './useLoginForm';
 
 interface LoginTextFieldProps {
   field: AnyFieldApi;
@@ -15,7 +15,7 @@ interface LoginTextFieldProps {
 
 /** Small presentational helper so email/password markup isn't duplicated. */
 function LoginTextField({ field, label, type = 'text', placeholder, disabled }: LoginTextFieldProps) {
-  const isInvalid = field.state.meta.isTouched && !!field.state.meta.errors.length;
+  const isInvalid = !!field.state.meta.errors.length;
 
   return (
     <Field data-invalid={isInvalid}>
@@ -37,7 +37,7 @@ function LoginTextField({ field, label, type = 'text', placeholder, disabled }: 
 }
 
 export function LoginPage() {
-  const { form, isLoading, handleSubmit } = useLoginForm();
+  const { form, isLoading } = useLoginForm();
 
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-muted/50 p-4">
@@ -49,7 +49,12 @@ export function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              void form.handleSubmit();
+            }} 
+            className="space-y-4">
             <form.Field
               name="email"
               children={(field) => (

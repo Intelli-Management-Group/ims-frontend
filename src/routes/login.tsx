@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useLoginForm, loginBeforeLoad } from './useLoginForm';
+import { useLoginForm, loginBeforeLoad, type LoginFormValues } from './useLoginForm';
 
 export const Route = createFileRoute('/login')({
   beforeLoad: loginBeforeLoad,
@@ -17,7 +17,7 @@ export const Route = createFileRoute('/login')({
 });
 
 function LoginPage() {
-  const { form, isLoading } = useLoginForm();
+  const { form, isLoading, fieldErrors } = useLoginForm();
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/50 p-4">
@@ -32,6 +32,7 @@ function LoginPage() {
         <CardContent>
           <form
             className="space-y-4"
+            noValidate
             onSubmit={(e) => {
               e.preventDefault();
               form.handleSubmit();
@@ -39,8 +40,9 @@ function LoginPage() {
           >
             <form.Field name="email">
               {(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                const fieldError = fieldErrors[field.name as keyof LoginFormValues];
+                const errorMessages = fieldError ? [{ message: fieldError }] : field.state.meta.errors;
+                const isInvalid = errorMessages.length > 0;
 
                 return (
                   <Field data-invalid={isInvalid}>
@@ -62,7 +64,7 @@ function LoginPage() {
                       aria-invalid={isInvalid}
                     />
 
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    {isInvalid && <FieldError errors={errorMessages} />}
                   </Field>
                 );
               }}
@@ -70,8 +72,9 @@ function LoginPage() {
 
             <form.Field name="password">
               {(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && field.state.meta.errors.length > 0;
+                const fieldError = fieldErrors[field.name as keyof LoginFormValues];
+                const errorMessages = fieldError ? [{ message: fieldError }] : field.state.meta.errors;
+                const isInvalid = errorMessages.length > 0;
 
                 return (
                   <Field data-invalid={isInvalid}>
@@ -90,7 +93,7 @@ function LoginPage() {
                       aria-invalid={isInvalid}
                     />
 
-                    {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                    {isInvalid && <FieldError errors={errorMessages} />}
                   </Field>
                 );
               }}
