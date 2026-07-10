@@ -51,6 +51,13 @@ export const defaultFormElements: DefaultFormElements = {
 	DatePicker: {
 		label: "Pick a date",
 	},
+	DateRangePicker: {
+		label: "Pick a date range",
+	},
+	TimePicker: {
+		label: "Pick a time",
+		placeholder: "Select a time",
+	},
 	Select: {
 		label: "Select option",
 		placeholder: "",

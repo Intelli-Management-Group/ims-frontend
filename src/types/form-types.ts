@@ -110,6 +110,17 @@ type DatePicker = {
 } & React.InputHTMLAttributes<HTMLInputElement> &
 	SharedFormProps;
 
+type DateRangePicker = {
+	fieldType: "DateRangePicker";
+	value?: { start?: string; end?: string };
+} & SharedFormProps;
+
+type TimePicker = {
+	fieldType: "TimePicker";
+	step?: number;
+} & React.InputHTMLAttributes<HTMLInputElement> &
+	SharedFormProps;
+
 type H1 = {
 	fieldType: "H1";
 	/**
@@ -183,7 +194,9 @@ type FormFieldElement =
 	| Select
 	| MultiSelect
 	| Slider
-	| DatePicker;
+	| DatePicker
+	| DateRangePicker
+	| TimePicker;
 
 /**
  * StaticFormElement is a type that represents a static form element

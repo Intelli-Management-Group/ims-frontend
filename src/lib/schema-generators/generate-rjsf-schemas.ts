@@ -96,6 +96,22 @@ function buildJsonProperty(
 			prop = { ...base(), type: "string", format: "date" };
 			break;
 		}
+		case "DateRangePicker": {
+			prop = {
+				...base(),
+				type: "object",
+				properties: {
+					start: { type: "string", format: "date" },
+					end: { type: "string", format: "date" },
+				},
+				required: ["start", "end"],
+			};
+			break;
+		}
+		case "TimePicker": {
+			prop = { ...base(), type: "string", format: "time" };
+			break;
+		}
 		case "Checkbox": {
 			prop = { ...base(), type: "boolean" };
 			// if (required) {
@@ -244,6 +260,9 @@ function buildUiEntry(
 			break;
 		case "DatePicker":
 			ui["ui:widget"] = "date";
+			break;
+		case "TimePicker":
+			ui["ui:widget"] = "alt-datetime";
 			break;
 		case "OTP":
 			ui["ui:options"] = { inputType: "password" };

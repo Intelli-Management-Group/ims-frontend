@@ -3,6 +3,8 @@ import {
 	CheckSquare,
 	ChevronDown,
 	ListChecks,
+	CalendarRange,
+	Clock,
 	// ToggleLeft,
 	Type,
 	WrapText,
@@ -40,6 +42,18 @@ export const formElementsList: FormElementsPaletteItem[] = [
 		name: "Date Picker",
 		fieldType: "DatePicker",
 		icon: Calendar,
+	},
+	{
+		group: "field",
+		name: "Date Range Picker",
+		fieldType: "DateRangePicker",
+		icon: CalendarRange,
+	},
+	{
+		group: "field",
+		name: "Time Picker",
+		fieldType: "TimePicker",
+		icon: Clock,
 	},
 	{
 		group: "field",

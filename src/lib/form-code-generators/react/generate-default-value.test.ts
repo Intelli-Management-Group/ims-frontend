@@ -39,4 +39,27 @@ describe('getDefaultFormElement', () => {
       country: 'us',
     });
   });
+
+  it('returns defaults for picker field types', () => {
+    const elements: FormElementOrList[] = [
+      {
+        id: '4',
+        name: 'date-range',
+        fieldType: 'DateRangePicker',
+        label: 'Date Range',
+      },
+      {
+        id: '5',
+        name: 'meeting-time',
+        fieldType: 'TimePicker',
+        label: 'Meeting Time',
+      },
+    ];
+
+    const defaults = getDefaultFormElement(elements);
+    expect(defaults).toEqual({
+      date_range: { start: '', end: '' },
+      meeting_time: '',
+    });
+  });
 });

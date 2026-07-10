@@ -135,6 +135,25 @@ function buildFormElement(
 		} as FormElement;
 	}
 
+	// ---- Date range picker ----
+	if (type === "object" && prop.properties && typeof prop.properties === "object") {
+		const properties = prop.properties as Record<string, JsonProp>;
+		if (properties.start && properties.end) {
+			return {
+				...base,
+				fieldType: "DateRangePicker",
+			} as FormElement;
+		}
+	}
+
+	// ---- TimePicker ----
+	if (type === "string" && format === "time") {
+		return {
+			...base,
+			fieldType: "TimePicker",
+		} as FormElement;
+	}
+
 	// ---- Input (email) ----
 	if (type === "string" && format === "email") {
 		return {

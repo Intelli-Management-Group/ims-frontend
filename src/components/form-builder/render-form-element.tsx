@@ -642,6 +642,95 @@ export const RenderFormElement = ({
 					}}
 				</form.AppField>
 			);
+		case "DateRangePicker":
+			return (
+				<form.AppField name={formElement.name}>
+					{(field) => {
+						const value = (field.state.value as { start?: string; end?: string } | undefined) ?? {
+							start: "",
+							end: "",
+						};
+						return (
+							<field.FieldSet className="flex flex-col w-full gap-2">
+								<field.FieldLabel htmlFor={formElement.name}>
+									{formElement.label}{" "}
+									{formElement.required ? (
+										<span className="text-red-500">*</span>
+									) : (
+										""
+									)}
+								</field.FieldLabel>
+								<div className="grid gap-3 sm:grid-cols-2">
+									<label className="text-sm font-medium text-muted-foreground">
+										Start date
+										<Input
+											type="date"
+											name={`${formElement.name}.start`}
+											value={value.start ?? ""}
+											onChange={(e) => {
+												field.handleChange({ ...value, start: e.target.value });
+											}}
+											onBlur={field.handleBlur}
+										/>
+									</label>
+									<label className="text-sm font-medium text-muted-foreground">
+										End date
+										<Input
+											type="date"
+											name={`${formElement.name}.end`}
+											value={value.end ?? ""}
+											onChange={(e) => {
+												field.handleChange({ ...value, end: e.target.value });
+											}}
+											onBlur={field.handleBlur}
+										/>
+									</label>
+								</div>
+								<field.FieldDescription>
+									{formElement.description}
+								</field.FieldDescription>
+								<field.FieldError />
+							</field.FieldSet>
+						);
+					}}
+				</form.AppField>
+			);
+		case "TimePicker":
+			return (
+				<form.AppField name={formElement.name}>
+					{(field) => (
+						<field.FieldSet className="w-full">
+							<field.Field>
+								<field.FieldLabel htmlFor={formElement.name}>
+									{formElement.label}{" "}
+									{formElement.required ? (
+										<span className="text-red-500">*</span>
+									) : (
+										""
+									)}
+								</field.FieldLabel>
+								<Input
+									type="time"
+									name={formElement.name}
+									step={formElement.step ?? 60}
+									placeholder={formElement.placeholder}
+									disabled={formElement.disabled}
+									value={(field.state.value as string | undefined) ?? ""}
+									onChange={(e) => field.handleChange(e.target.value)}
+									onBlur={field.handleBlur}
+									aria-invalid={
+										!!field.state.meta.errors.length && field.state.meta.isTouched
+									}
+								/>
+								<field.FieldDescription>
+									{formElement.description}
+								</field.FieldDescription>
+								<field.FieldError />
+							</field.Field>
+						</field.FieldSet>
+					)}
+				</form.AppField>
+			);
 		case "H1":
 			return (
 				<h1
