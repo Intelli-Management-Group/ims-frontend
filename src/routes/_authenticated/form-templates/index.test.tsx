@@ -1,4 +1,4 @@
-import { screen, userEvent, waitFor } from '@/test/test-utils';
+import { screen, userEvent, waitFor, within } from '@/test/test-utils';
 import { renderWithRouter } from '@/test/test-utils';
 import { formTemplatesApi } from '@/api/form-templates';
 import * as useAuthModule from '@/hooks/use-auth';
@@ -142,5 +142,57 @@ describe('Form Templates page', () => {
     expect(screen.getByText('Status')).toBeInTheDocument();
     expect(screen.getByText('Created by')).toBeInTheDocument();
     expect(screen.getByText('Updated')).toBeInTheDocument();
+  });
+
+  it('shows a dash for the "Created by" column when a template has no creator', async () => {
+    renderWithRouter({ route: '/form-templates', user: adminUser });
+    await waitFor(() => {
+      expect(screen.getByText('Survey')).toBeInTheDocument();
+    });
+    const surveyRow = screen.getByText('Survey').closest('tr');
+    expect(surveyRow).not.toBeNull();
+    expect(within(surveyRow as HTMLElement).getByText('—')).toBeInTheDocument();
+  });
+
+  it('admin sees an edit action for every row linking to the correct form builder route', async () => {
+    renderWithRouter({ route: '/form-templates', user: adminUser });
+    await waitFor(() => {
+      expect(screen.getByText('Registration')).toBeInTheDocument();
+    });
+
+    const editLinks = screen.getAllByRole('link', { name: 'Edit' });
+    expect(editLinks).toHaveLength(2);
+    expect(editLinks[0]).toHaveAttribute('href', '/form-builder/1');
+    expect(editLinks[1]).toHaveAttribute('href', '/form-builder/2');
+  });
+
+  it('non-admin does not see an edit action column', async () => {
+    vi.spyOn(useAuthModule, 'useAuth').mockReturnValue({
+      user: memberUser,
+      isLoading: false,
+      isAuthenticated: true,
+      isAdmin: false,
+      login: vi.fn(),
+      logout: vi.fn().mockResolvedValue(undefined),
+    });
+    try {
+      renderWithRouter({ route: '/form-templates', user: memberUser });
+      await waitFor(() => {
+        expect(screen.getByText('Registration')).toBeInTheDocument();
+      });
+      expect(screen.queryByRole('link', { name: 'Edit' })).not.toBeInTheDocument();
+      // 4 data columns (Name, Status, Created by, Updated) and no actions column
+      expect(screen.getAllByRole('columnheader')).toHaveLength(4);
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
+
+  it('admin table includes the actions column header', async () => {
+    renderWithRouter({ route: '/form-templates', user: adminUser });
+    await waitFor(() => {
+      expect(screen.getByText('Registration')).toBeInTheDocument();
+    });
+    expect(screen.getAllByRole('columnheader')).toHaveLength(5);
   });
 });
