@@ -253,7 +253,7 @@ export const getDefaultFormElement = (
 			if (!isStaticElement(formElement) && formElement.name) {
 				const defaultValue = getFieldDefaultValue(formElement);
 				if (defaultValue !== undefined) {
-					defaults[formElement.name] = defaultValue;
+					defaults[sanitizeFieldName(formElement.name)] = defaultValue;
 				}
 			}
 		}
