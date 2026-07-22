@@ -262,7 +262,7 @@ function buildUiEntry(
 			ui["ui:widget"] = "date";
 			break;
 		case "TimePicker":
-			ui["ui:widget"] = "alt-datetime";
+			ui["ui:widget"] = "time";
 			break;
 		case "OTP":
 			ui["ui:options"] = { inputType: "password" };
