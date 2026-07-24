@@ -44,6 +44,13 @@ const loadedTemplate: FormTemplate = {
   is_active: true,
   created_by: 1,
   creator: null,
+  current_version: {
+    id: 1,
+    form_template_id: 42,
+    version_number: 1,
+    created_at: '',
+    updated_at: '',
+  },
   created_at: '',
   updated_at: '',
 };
@@ -151,6 +158,7 @@ describe('Edit Form Builder page', () => {
         name: 'Updated name',
         json_schema: expect.any(Object),
         ui_schema: expect.any(Object),
+        version_number: 1,
       }),
     );
     // The edit flow must not send is_active — only create does.
@@ -204,5 +212,72 @@ describe('Edit Form Builder page', () => {
       expect(toast.error).toHaveBeenCalledWith('Failed to update template');
     });
     expect(screen.getByRole('button', { name: /^Save$/i })).not.toBeDisabled();
+  });
+
+  it('updates version_number after save so second consecutive save uses incremented version', async () => {
+    vi.mocked(formTemplatesApi.getFormTemplate).mockResolvedValue(loadedTemplate);
+    vi.mocked(formTemplatesApi.updateFormTemplate).mockResolvedValueOnce({
+      ...loadedTemplate,
+      current_version: {
+        id: 2,
+        form_template_id: 42,
+        version_number: 2,
+        created_at: '',
+        updated_at: '',
+      },
+    });
+
+    const user = userEvent.setup();
+    renderWithRouter({ route: '/form-builder/42', user: adminUser });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Template name')).toHaveValue('Registration');
+    });
+
+    const saveButton = screen.getByRole('button', { name: /^Save$/i });
+    await user.click(saveButton);
+
+    await waitFor(() => {
+      expect(formTemplatesApi.updateFormTemplate).toHaveBeenNthCalledWith(
+        1,
+        42,
+        expect.objectContaining({ version_number: 1 }),
+      );
+    });
+
+    await user.click(saveButton);
+
+    await waitFor(() => {
+      expect(formTemplatesApi.updateFormTemplate).toHaveBeenNthCalledWith(
+        2,
+        42,
+        expect.objectContaining({ version_number: 2 }),
+      );
+    });
+  });
+
+  it('shows 409 conflict message when backend returns 409 version conflict', async () => {
+    vi.mocked(formTemplatesApi.getFormTemplate).mockResolvedValue(loadedTemplate);
+    const error409 = {
+      isAxiosError: true,
+      response: { status: 409 },
+    };
+    vi.mocked(formTemplatesApi.updateFormTemplate).mockRejectedValueOnce(error409);
+
+    const user = userEvent.setup();
+    renderWithRouter({ route: '/form-builder/42', user: adminUser });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Template name')).toHaveValue('Registration');
+    });
+
+    const saveButton = screen.getByRole('button', { name: /^Save$/i });
+    await user.click(saveButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        'This template was modified by someone else. Reload to get the latest version.',
+      );
+    });
   });
 });

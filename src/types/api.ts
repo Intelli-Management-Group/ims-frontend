@@ -36,6 +36,14 @@ export interface Role {
   updated_at: string;
 }
 
+export interface FormTemplateVersion {
+  id: number;
+  form_template_id: number;
+  version_number: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface FormTemplate {
   id: number;
   name: string;
@@ -44,6 +52,7 @@ export interface FormTemplate {
   is_active: boolean;
   created_by: number | null;
   creator?: User | null;
+  current_version?: FormTemplateVersion | null;
   created_at: string;
   updated_at: string;
 }

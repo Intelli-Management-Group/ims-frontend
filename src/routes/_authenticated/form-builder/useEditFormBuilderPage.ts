@@ -1,5 +1,6 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import axios from 'axios';
 import { toast } from 'sonner';
 import { formTemplatesApi } from '@/api/form-templates';
 import type { FormElementOrList } from '@/db-collections/form-builder.collections';
@@ -23,6 +24,7 @@ export function useEditFormBuilderPage(templateId: string) {
   const [isLoading, setIsLoading] = useState(true);
   const [templateDbId, setTemplateDbId] = useState<number | null>(null);
   const [templateName, setTemplateName] = useState('');
+  const [versionNumber, setVersionNumber] = useState<number | null>(null);
   const { formElements } = useFormBuilderState();
   const { setBreadcrumbs } = useBreadcrumb();
   const requestIdRef = useRef(0);
@@ -33,6 +35,7 @@ export function useEditFormBuilderPage(templateId: string) {
     setIsLoading(true);
     setTemplateDbId(null);
     setTemplateName('');
+    setVersionNumber(null);
 
     const numericId = Number(templateId);
     if (!numericId) {
@@ -56,6 +59,7 @@ export function useEditFormBuilderPage(templateId: string) {
         loadFormTemplate(template.name, elements as FormElementOrList[]);
         setTemplateName(template.name);
         setTemplateDbId(template.id);
+        setVersionNumber(template.current_version?.version_number ?? null);
         setBreadcrumbs([
           { label: 'Form Templates', path: '/form-templates' },
           { label: template.name, path: `/form-builder/${template.id}` },
@@ -103,7 +107,7 @@ export function useEditFormBuilderPage(templateId: string) {
   );
 
   const handleSave = useCallback(async () => {
-    if (isSaving || templateDbId === null) return;
+    if (isSaving || templateDbId === null || versionNumber === null) return;
     const trimmedName = templateName.trim();
     if (!trimmedName) {
       toast.error('Enter a template name');
@@ -111,18 +115,26 @@ export function useEditFormBuilderPage(templateId: string) {
     }
     setIsSaving(true);
     try {
-      await formTemplatesApi.updateFormTemplate(templateDbId, {
+      const updatedTemplate = await formTemplatesApi.updateFormTemplate(templateDbId, {
         name: trimmedName,
         json_schema: jsonSchema as Record<string, unknown>,
         ui_schema: uiSchema as Record<string, unknown>,
+        version_number: versionNumber,
       });
+      if (updatedTemplate.current_version?.version_number) {
+        setVersionNumber(updatedTemplate.current_version.version_number);
+      }
       toast.success('Template updated');
-    } catch {
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 409) {
+        toast.error('This template was modified by someone else. Reload to get the latest version.');
+        return;
+      }
       toast.error('Failed to update template');
     } finally {
       setIsSaving(false);
     }
-  }, [isSaving, templateDbId, templateName, jsonSchema, uiSchema]);
+  }, [isSaving, templateDbId, versionNumber, templateName, jsonSchema, uiSchema]);
 
   const headerProps = useMemo(
     () => ({
