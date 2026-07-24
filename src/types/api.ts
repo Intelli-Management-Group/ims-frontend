@@ -38,7 +38,13 @@ export interface Role {
 
 export interface FormTemplateVersion {
   id: number;
-  form_template_id: number;
+  template_id: number;
+  user_id: number | null;
+  user?: User | null;
+  name: string;
+  json_schema: unknown;
+  ui_schema: unknown;
+  is_active: boolean;
   version_number: number;
   created_at: string;
   updated_at: string;
