@@ -6,7 +6,8 @@ type DefaultValue =
 	| number
 	| boolean
 	| string[]
-	| Record<string, unknown>[];
+	| Record<string, unknown>
+	| { start: string; end: string };
 type FieldTypeWithOptions = FormElement & {
 	options?: Array<{ value: string; label: React.ReactNode }>;
 };
@@ -25,6 +26,8 @@ const FORM_ELEMENT_DEFAULTS: Record<
 	Textarea: () => "",
 	OTP: () => "",
 	DatePicker: () => "",
+	DateRangePicker: () => ({ start: "", end: "" }),
+	TimePicker: () => "",
 	Checkbox: () => false,
 	Switch: () => false,
 	RadioGroup: (field: FormElement) => {
@@ -250,7 +253,7 @@ export const getDefaultFormElement = (
 			if (!isStaticElement(formElement) && formElement.name) {
 				const defaultValue = getFieldDefaultValue(formElement);
 				if (defaultValue !== undefined) {
-					defaults[formElement.name] = defaultValue;
+					defaults[sanitizeFieldName(formElement.name)] = defaultValue;
 				}
 			}
 		}

@@ -119,6 +119,23 @@ const DatePickerSchema = v.object({
 	fieldType: v.literal("DatePicker"),
 });
 
+const DateRangePickerSchema = v.object({
+	...SharedFormPropsSchema.entries,
+	fieldType: v.literal("DateRangePicker"),
+	value: v.optional(
+		v.object({
+			start: v.optional(v.string()),
+			end: v.optional(v.string()),
+		}),
+	),
+});
+
+const TimePickerSchema = v.object({
+	...SharedFormPropsSchema.entries,
+	fieldType: v.literal("TimePicker"),
+	step: v.optional(v.number()),
+});
+
 // Static Elements
 const StaticBaseSchema = v.object({
 	id: v.string(),
@@ -182,6 +199,8 @@ const FormElementSchema: v.GenericSchema<any> = v.lazy(() =>
 		SelectSchema,
 		MultiSelectSchema,
 		DatePickerSchema,
+		DateRangePickerSchema,
+		TimePickerSchema,
 		H1Schema,
 		H2Schema,
 		H3Schema,

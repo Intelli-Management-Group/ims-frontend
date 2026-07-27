@@ -54,6 +54,16 @@ describe('form-builder.service', () => {
     expect((elements?.[0] as { fieldType?: string }).fieldType).toBe('Input');
   });
 
+  it('supports adding picker field types', () => {
+    appendElement({ fieldType: 'DateRangePicker' });
+    appendElement({ fieldType: 'TimePicker' });
+    const elements = formBuilderCollection.get(FORM_ID)?.formElements as Array<{
+      fieldType?: string;
+    }>;
+    expect(elements?.[0]?.fieldType).toBe('DateRangePicker');
+    expect(elements?.[1]?.fieldType).toBe('TimePicker');
+  });
+
   it('resetFormElements clears elements', () => {
     appendElement({ fieldType: 'Checkbox' });
     expect(

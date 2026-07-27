@@ -35,6 +35,7 @@ export const formTemplatesApi = {
       json_schema?: Record<string, unknown>;
       ui_schema?: Record<string, unknown>;
       is_active?: boolean;
+      version_number: number;
     },
   ) => {
     const { data } = await apiClient.put<{ data: FormTemplate }>(`/form-templates/${id}`, payload);

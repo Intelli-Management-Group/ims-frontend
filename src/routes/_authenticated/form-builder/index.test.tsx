@@ -2,7 +2,19 @@ import { screen, userEvent, waitFor } from '@/test/test-utils';
 import { renderWithRouter } from '@/test/test-utils';
 import { formTemplatesApi } from '@/api/form-templates';
 import { getStoredFormName, initializeFormBuilder } from '@/services/form-builder.service';
+import { toast } from 'sonner';
 import type { AuthUser, FormTemplate } from '@/types/api';
+
+vi.mock('sonner', async (importOriginal) => {
+  const mod = await importOriginal<typeof import('sonner')>();
+  return {
+    ...mod,
+    toast: {
+      success: vi.fn(),
+      error: vi.fn(),
+    },
+  };
+});
 
 const savedTemplate: FormTemplate = {
   id: 99,
@@ -42,6 +54,8 @@ describe('Form Builder page', () => {
     initializeFormBuilder();
     vi.mocked(formTemplatesApi.createFormTemplate).mockReset();
     vi.mocked(formTemplatesApi.createFormTemplate).mockResolvedValue(savedTemplate);
+    vi.mocked(toast.success).mockClear();
+    vi.mocked(toast.error).mockClear();
     vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(1200);
   });
 
@@ -85,5 +99,101 @@ describe('Form Builder page', () => {
       ui_schema: expect.any(Object),
       is_active: true,
     });
+  });
+
+  it('shows an error and does not call the API when saving with an empty name', async () => {
+    const user = userEvent.setup();
+    renderWithRouter({ route: '/form-builder', user: adminUser });
+    await waitFor(() => {
+      expect(screen.getByLabelText('Template name')).toBeInTheDocument();
+    });
+
+    const saveButton = screen.getByRole('button', { name: /^Save$/i });
+    await user.click(saveButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Enter a template name');
+    });
+    expect(formTemplatesApi.createFormTemplate).not.toHaveBeenCalled();
+  });
+
+  it('shows a saving state while the request is pending and a success toast when it resolves', async () => {
+    let resolveSave: (value: FormTemplate) => void;
+    vi.mocked(formTemplatesApi.createFormTemplate).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveSave = resolve;
+        }),
+    );
+
+    const user = userEvent.setup();
+    renderWithRouter({ route: '/form-builder', user: adminUser });
+    await waitFor(() => {
+      expect(screen.getByLabelText('Template name')).toBeInTheDocument();
+    });
+
+    const nameInput = screen.getByLabelText('Template name') as HTMLInputElement;
+    nameInput.focus();
+    await user.type(nameInput, 'Contact form', { skipClick: true });
+
+    const saveButton = screen.getByRole('button', { name: /^Save$/i });
+    await waitFor(() => expect(saveButton).not.toBeDisabled());
+    await user.click(saveButton);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Saving/i })).toBeDisabled();
+    });
+
+    resolveSave!(savedTemplate);
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith('Template saved');
+    });
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /^Save$/i })).not.toBeDisabled();
+    });
+  });
+
+  it('shows an error toast and re-enables Save when the request fails', async () => {
+    vi.mocked(formTemplatesApi.createFormTemplate).mockRejectedValueOnce(new Error('network error'));
+
+    const user = userEvent.setup();
+    renderWithRouter({ route: '/form-builder', user: adminUser });
+    await waitFor(() => {
+      expect(screen.getByLabelText('Template name')).toBeInTheDocument();
+    });
+
+    const nameInput = screen.getByLabelText('Template name') as HTMLInputElement;
+    nameInput.focus();
+    await user.type(nameInput, 'Contact form', { skipClick: true });
+
+    const saveButton = screen.getByRole('button', { name: /^Save$/i });
+    await waitFor(() => expect(saveButton).not.toBeDisabled());
+    await user.click(saveButton);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Failed to save template');
+    });
+    expect(screen.getByRole('button', { name: /^Save$/i })).not.toBeDisabled();
+  });
+
+  it('renders the Form Builder sections on a mobile viewport', async () => {
+    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(500);
+    renderWithRouter({ route: '/form-builder', user: adminUser });
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Form Builder' })).toBeInTheDocument();
+    });
+    expect(screen.getByRole('heading', { name: 'Editor' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Preview' })).toBeInTheDocument();
+  });
+
+  it('renders the Form Builder sections on a tablet viewport', async () => {
+    vi.spyOn(window, 'innerWidth', 'get').mockReturnValue(900);
+    renderWithRouter({ route: '/form-builder', user: adminUser });
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Form Builder' })).toBeInTheDocument();
+    });
+    expect(screen.getByRole('heading', { name: 'Editor' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Preview' })).toBeInTheDocument();
   });
 });

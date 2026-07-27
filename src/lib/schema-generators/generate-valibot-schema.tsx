@@ -87,6 +87,15 @@ export const generateValiSchemaObject = (
 					v.date(),
 				);
 				break;
+			case "DateRangePicker":
+				elementSchema = v.object({
+					start: v.optional(v.string()),
+					end: v.optional(v.string()),
+				});
+				break;
+			case "TimePicker":
+				elementSchema = v.optional(v.string());
+				break;
 			case "Checkbox":
 				elementSchema = v.boolean();
 				break;
