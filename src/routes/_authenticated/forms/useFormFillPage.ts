@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { formTemplatesApi } from "@/api/form-templates";
 import { formSubmissionsApi } from "@/api/form-submissions";
 import { useBreadcrumb } from "@/hooks/use-breadcrumb";
+import axios from "axios";
 
 export function useFormFillPage(templateId: string) {
 	const navigate = useNavigate();
@@ -73,6 +74,23 @@ export function useFormFillPage(templateId: string) {
 
 		onError: (error) => {
 			console.error(error);
+
+			if (axios.isAxiosError(error)) {
+			const response = error.response?.data;
+			if (response?.errors) {
+				Object.values(response.errors)
+				.flat()
+				.forEach((message) => {
+					toast.error(String(message));
+				});
+
+				return;
+			}
+
+			toast.error(response?.message ?? "Failed to submit form");
+			return;
+			}
+
 			toast.error("Failed to submit form");
 		},
 	});
