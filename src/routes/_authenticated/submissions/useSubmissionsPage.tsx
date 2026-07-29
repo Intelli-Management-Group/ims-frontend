@@ -66,7 +66,7 @@ export function useSubmissionsPage() {
         header: 'Submitted by',
         cell: ({ row }) => (
           <span className="text-muted-foreground">
-            {row.original.current_version?.user?.name ?? '—'}
+            {row.original.created_by ?? '—'}
           </span>
         ),
       },

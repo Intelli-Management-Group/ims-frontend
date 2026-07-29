@@ -87,7 +87,7 @@ function realColumns() {
       id: 'submitted_by',
       header: 'Submitted by',
       cell: ({ row }: { row: { original: FormSubmission } }) =>
-        row.original.current_version?.user?.name ?? '—',
+        row.original.created_by ?? '—',
     },
     {
       accessorKey: 'created_at',
