@@ -7,6 +7,7 @@ import { useScreenSize } from '@/hooks/use-screen-size';
 import useFormBuilderState from '@/hooks/use-form-builder-state';
 import { generateFormJsonSchema, generateFormUiSchema } from '@/lib/schema-generators';
 import { resetFormBuilder, setFormName } from '@/services/form-builder.service';
+import axios from "axios";
 
 export function useFormBuilderPage() {
   const isMobile = useIsMobile();
@@ -56,8 +57,23 @@ export function useFormBuilderPage() {
         is_active: true,
       });
       toast.success('Template saved');
-    } catch {
-      toast.error('Failed to save template');
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+          const response = error.response?.data;
+
+          if (response?.errors) {
+            Object.values(response.errors)
+              .flat()
+              .forEach((message) => {
+                toast.error(String(message));
+              });
+            return;
+          }
+
+          toast.error(response?.message ?? "Failed to save template");
+          return;
+        }
+      toast.error("Failed to save template");
     } finally {
       setIsSaving(false);
     }

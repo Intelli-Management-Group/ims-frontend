@@ -126,11 +126,30 @@ export function useEditFormBuilderPage(templateId: string) {
       }
       toast.success('Template updated');
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 409) {
-        toast.error('This template was modified by someone else. Reload to get the latest version.');
-        return;
-      }
-      toast.error('Failed to update template');
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 409) {
+            toast.error(
+              "This template was modified by someone else. Reload to get the latest version.",
+            );
+            return;
+          }
+
+          const response = error.response?.data;
+
+          if (response?.errors) {
+            Object.values(response.errors)
+              .flat()
+              .forEach((message) => {
+                toast.error(String(message));
+              });
+            return;
+          }
+
+          toast.error(response?.message ?? "Failed to update template");
+          return;
+        }
+
+        toast.error("Failed to update template");
     } finally {
       setIsSaving(false);
     }
