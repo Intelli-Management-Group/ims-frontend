@@ -1,5 +1,5 @@
-import apiClient from './client';
-import type { FormSubmission, PaginatedResponse } from '../types/api';
+import apiClient from "./client";
+import type { FormSubmission, PaginatedResponse } from "../types/api";
 
 export const formSubmissionsApi = {
   getFormSubmissions: async (params?: {
@@ -7,23 +7,32 @@ export const formSubmissionsApi = {
     per_page?: number;
     form_template_id?: number;
   }) => {
-    const { data } = await apiClient.get<PaginatedResponse<FormSubmission>>('/form-submissions', {
-      params,
-    });
+    const { data } = await apiClient.get<PaginatedResponse<FormSubmission>>(
+      "/form-submissions",
+      {
+        params,
+      },
+    );
     return data;
   },
 
   getFormSubmission: async (id: number) => {
-    const { data } = await apiClient.get<{ data: FormSubmission }>(`/form-submissions/${id}`);
+    const { data } = await apiClient.get<{ data: FormSubmission }>(
+      `/form-submissions/${id}`,
+    );
     return data.data;
   },
 
   createFormSubmission: async (payload: {
     form_template_id: number;
+    form_template_version_id: number;
     form_name: string;
     content: Record<string, unknown>;
   }) => {
-    const { data } = await apiClient.post<{ data: FormSubmission }>('/form-submissions', payload);
+    const { data } = await apiClient.post<{ data: FormSubmission }>(
+      "/form-submissions",
+      payload,
+    );
     return data.data;
   },
 
@@ -35,7 +44,10 @@ export const formSubmissionsApi = {
       version_number: number;
     },
   ) => {
-    const { data } = await apiClient.put<{ data: FormSubmission }>(`/form-submissions/${id}`, payload);
+    const { data } = await apiClient.put<{ data: FormSubmission }>(
+      `/form-submissions/${id}`,
+      payload,
+    );
     return data.data;
   },
 };

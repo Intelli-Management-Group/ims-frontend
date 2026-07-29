@@ -53,17 +53,26 @@ export function useFormFillPage(templateId: string) {
 	}, [template, setBreadcrumbs]);
 
 	const { mutate: submitForm, isPending: isSubmitting } = useMutation({
-		mutationFn: (content: Record<string, unknown>) =>
-			formSubmissionsApi.createFormSubmission({
-				form_template_id: numericId,
-				form_name: formName.trim(),
-				content,
-			}),
+		mutationFn: (content: Record<string, unknown>) => {
+			if (!template?.current_version) {
+			throw new Error("Template version not found");
+			}
+
+			return formSubmissionsApi.createFormSubmission({
+			form_template_id: numericId,
+			form_template_version_id: template.current_version.id,
+			form_name: formName.trim(),
+			content,
+			});
+		},
+
 		onSuccess: () => {
 			toast.success("Form submitted successfully");
 			navigate({ to: "/forms" });
 		},
-		onError: () => {
+
+		onError: (error) => {
+			console.error(error);
 			toast.error("Failed to submit form");
 		},
 	});

@@ -53,14 +53,32 @@ export interface FormTemplateVersion {
 export interface FormTemplate {
   id: number;
   name: string;
-  json_schema: unknown;
-  ui_schema: unknown;
+  json_schema: Record<string, unknown>;
+  ui_schema: Record<string, unknown>;
   is_active: boolean;
   created_by: number | null;
   creator?: User | null;
-  current_version?: FormTemplateVersion | null;
+  current_version: FormTemplateVersion;
   created_at: string;
   updated_at: string;
+}
+
+export interface FormTemplate {
+  id: number;
+  name: string;
+  json_schema: Record<string, unknown>;
+  ui_schema: Record<string, unknown>;
+  is_active: boolean;
+
+  current_version: {
+    id: number;
+    template_id: number;
+    version_number: number;
+    name: string;
+    json_schema: Record<string, unknown>;
+    ui_schema: Record<string, unknown>;
+    is_active: boolean;
+  };
 }
 
 export interface FormSubmissionVersion {
@@ -85,6 +103,19 @@ export interface FormSubmission {
   updated_at: string;
 }
 
+
+export interface FormSubmission {
+  id: number;
+  form_template_id: number;
+  current_version_id: number | null;
+  // New fields
+  template_version?: FormTemplateVersion | null;
+  created_by: string;
+  template?: FormTemplate | null;
+  current_version?: FormSubmissionVersion | null;
+  created_at: string;
+  updated_at: string;
+}
 export interface PaginatedResponse<T> {
   data: T[];
   links: {
