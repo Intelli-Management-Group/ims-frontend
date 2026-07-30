@@ -54,6 +54,9 @@ const sampleTemplate = {
 	name: "Onboarding",
 	json_schema: {},
 	ui_schema: {},
+	current_version: {
+		id: 10,
+	},
 };
 
 describe("useFormFillPage", () => {
@@ -149,7 +152,41 @@ describe("useFormFillPage", () => {
 		expect(result.current.formNameError).toBe(false);
 	});
 
+	// it("submits a trimmed form name and content, then navigates on success", async () => {
+	// 	vi.mocked(formSubmissionsApi.createFormSubmission).mockResolvedValue(
+	// 		{} as any,
+	// 	);
+
+	// 	const { result } = renderHook(() => useFormFillPage("1"), {
+	// 		wrapper: createWrapper(),
+	// 	});
+
+	// 	act(() => {
+	// 		result.current.handleFormNameChange("  My Submission  ");
+	// 	});
+	// 	act(() => {
+	// 		result.current.handleSubmit({ formData: { foo: "bar" } } as any);
+	// 	});
+
+	// 	await waitFor(() => {
+	// 		expect(formSubmissionsApi.createFormSubmission).toHaveBeenCalledWith({
+	// 			form_template_id: 1,
+	// 			form_name: "My Submission",
+	// 			content: { foo: "bar" },
+	// 		});
+	// 	});
+
+	// 	await waitFor(() => {
+	// 		expect(toast.success).toHaveBeenCalledWith("Form submitted successfully");
+	// 		expect(mockNavigate).toHaveBeenCalledWith({ to: "/forms" });
+	// 	});
+	// });
+
 	it("submits a trimmed form name and content, then navigates on success", async () => {
+		vi.mocked(formTemplatesApi.getFormTemplate).mockResolvedValue(
+			sampleTemplate as any,
+		);
+
 		vi.mocked(formSubmissionsApi.createFormSubmission).mockResolvedValue(
 			{} as any,
 		);
@@ -158,23 +195,34 @@ describe("useFormFillPage", () => {
 			wrapper: createWrapper(),
 		});
 
+		// Wait until the template has been loaded
+		await waitFor(() => {
+			expect(formTemplatesApi.getFormTemplate).toHaveBeenCalledWith(1);
+		});
+
 		act(() => {
 			result.current.handleFormNameChange("  My Submission  ");
 		});
+
 		act(() => {
-			result.current.handleSubmit({ formData: { foo: "bar" } } as any);
+			result.current.handleSubmit({
+				formData: { foo: "bar" },
+			} as any);
 		});
 
 		await waitFor(() => {
 			expect(formSubmissionsApi.createFormSubmission).toHaveBeenCalledWith({
 				form_template_id: 1,
+				form_template_version_id: 10,
 				form_name: "My Submission",
 				content: { foo: "bar" },
 			});
 		});
 
 		await waitFor(() => {
-			expect(toast.success).toHaveBeenCalledWith("Form submitted successfully");
+			expect(toast.success).toHaveBeenCalledWith(
+				"Form submitted successfully",
+			);
 			expect(mockNavigate).toHaveBeenCalledWith({ to: "/forms" });
 		});
 	});
