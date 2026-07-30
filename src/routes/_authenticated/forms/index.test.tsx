@@ -22,7 +22,27 @@ vi.mock("./useFormsPage", () => ({
 	useFormsPage: vi.fn(),
 }));
 
-const baseHookReturn = {
+type FormsPageData = {
+	data: Array<{ id: number }>;
+	meta: {
+		last_page: number;
+		total: number;
+	};
+};
+
+type BaseHookReturn = {
+	page: number;
+	setPage: ReturnType<typeof vi.fn>;
+	perPage: number;
+	search: string;
+	data?: FormsPageData;
+	isLoading: boolean;
+	columns: unknown[];
+	handlePerPageChange: ReturnType<typeof vi.fn>;
+	handleSearchChange: ReturnType<typeof vi.fn>;
+};
+
+const baseHookReturn: BaseHookReturn = {
 	page: 1,
 	setPage: vi.fn(),
 	perPage: 10,
@@ -33,6 +53,7 @@ const baseHookReturn = {
 	handlePerPageChange: vi.fn(),
 	handleSearchChange: vi.fn(),
 };
+
 
 async function renderPage(overrides: Partial<typeof baseHookReturn> = {}) {
 	vi.mocked(useFormsPageModule.useFormsPage).mockReturnValue({

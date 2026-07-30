@@ -64,14 +64,44 @@ function buildMockSubmission(overrides?: Partial<FormSubmission>): FormSubmissio
 }
 
 function renderCell(
-  columns: ReturnType<typeof useSubmissionsPage>['columns'],
-  columnId: string,
-  submission: FormSubmission,
+	columns: ReturnType<typeof useSubmissionsPage>["columns"],
+	columnId: string,
+	submission: FormSubmission,
 ) {
-  const column = columns.find((c) => ('id' in c ? c.id : c.accessorKey) === columnId);
-  if (!column?.cell) throw new Error(`Column "${columnId}" or its cell renderer was not found`);
-  const cellFn = column.cell as (ctx: Pick<CellContext<FormSubmission, unknown>, 'row'>) => ReactNode;
-  return render(<>{cellFn({ row: { original: submission } as never })}</>);
+	const column = columns.find((column) => {
+		if ("id" in column && column.id === columnId) {
+			return true;
+		}
+
+		if (
+			"accessorKey" in column &&
+			column.accessorKey === columnId
+		) {
+			return true;
+		}
+
+		return false;
+	});
+
+	if (!column?.cell) {
+		throw new Error(
+			`Column "${columnId}" or its cell renderer was not found`,
+		);
+	}
+
+	const cellFn = column.cell as (
+		ctx: Pick<CellContext<FormSubmission, unknown>, "row">
+	) => ReactNode;
+
+	return render(
+		<>
+			{cellFn({
+				row: {
+					original: submission,
+				} as never,
+			})}
+		</>,
+	);
 }
 
 describe('useSubmissionsPage', () => {
