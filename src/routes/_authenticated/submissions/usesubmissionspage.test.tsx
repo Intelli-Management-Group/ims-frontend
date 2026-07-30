@@ -26,6 +26,7 @@ function buildMockSubmission(overrides?: Partial<FormSubmission>): FormSubmissio
     id: 5,
     form_template_id: 10,
     current_version_id: 100,
+    created_by: 'John Doe',
     template: {
       id: 10,
       name: 'Contact Form',
@@ -188,23 +189,33 @@ describe('useSubmissionsPage', () => {
     });
 
     it('renders the submitter name', async () => {
-      const { result } = renderHook(() => useSubmissionsPage(), { wrapper: createWrapper() });
-      renderCell(result.current.columns, 'submitted_by', buildMockSubmission());
+      const { result } = renderHook(() => useSubmissionsPage(), {
+        wrapper: createWrapper(),
+      });
 
-      expect(await screen.findByText('John Doe')).toBeInTheDocument();
-    });
-
-    it('renders an em dash when there is no submitter', async () => {
-      const { result } = renderHook(() => useSubmissionsPage(), { wrapper: createWrapper() });
       renderCell(
         result.current.columns,
         'submitted_by',
-        buildMockSubmission({ current_version: null } as never),
+        buildMockSubmission({ created_by: 'John Doe' }),
+      );
+
+      expect(await screen.findByText('John Doe')).toBeInTheDocument();
+    });
+    
+    it('renders an em dash when there is no submitter', async () => {
+      const { result } = renderHook(() => useSubmissionsPage(), {
+        wrapper: createWrapper(),
+      });
+
+      renderCell(
+        result.current.columns,
+        'submitted_by',
+        buildMockSubmission({ created_by: null } as never),
       );
 
       expect(await screen.findByText('—')).toBeInTheDocument();
     });
-
+    
     it('renders an em dash for created_at / updated_at when the date is missing', async () => {
       const { result } = renderHook(() => useSubmissionsPage(), { wrapper: createWrapper() });
       renderCell(result.current.columns, 'created_at', buildMockSubmission({ created_at: '' }));
