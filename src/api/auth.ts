@@ -16,15 +16,11 @@ export const authApi = {
 	},
 
 	me: async (): Promise<AuthUser | null> => {
-		try {
-			const { data } = await apiClient.get<{ data: AuthUser | null }>(
-				"/auth/me",
-			);
+		const { data } = await apiClient.get<{ data: AuthUser | null }>(
+			"/auth/me",
+		);
 
-			return data.data;
-		} catch {
-			return null;
-		}
+		return data.data;
 	},
 
 	refresh: async () => {
