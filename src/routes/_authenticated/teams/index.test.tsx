@@ -62,22 +62,6 @@ const mockTeamsList = {
   meta: { current_page: 1, from: 1, last_page: 1, links: [], path: '', per_page: 10, to: 1, total: 1 },
 };
 
-const mockTeamsListNoDepartment = {
-  data: [
-    {
-      id: 2,
-      name: 'Unassigned Crew',
-      department_id: null,
-      is_active: true,
-      department: null,
-      created_at: '',
-      updated_at: '',
-    },
-  ],
-  links: { first: null, last: null, prev: null, next: null },
-  meta: { current_page: 1, from: 1, last_page: 1, links: [], path: '', per_page: 10, to: 1, total: 1 },
-};
-
 describe('Teams page', () => {
   const mockedUseAuth = vi.mocked(useAuth);
 
