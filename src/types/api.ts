@@ -22,10 +22,10 @@ export interface Team {
   id: number;
   name: string;
   department_id: number;
-  is_active: boolean;
   department?: Department | null;
   created_at: string;
   updated_at: string;
+  is_active: boolean;
 }
 
 export interface Role {
@@ -42,8 +42,8 @@ export interface FormTemplateVersion {
   user_id: number | null;
   user?: User | null;
   name: string;
-  json_schema: unknown;
-  ui_schema: unknown;
+  json_schema: Record<string, unknown>;
+  ui_schema: Record<string, unknown>;
   is_active: boolean;
   version_number: number;
   created_at: string;
@@ -53,89 +53,86 @@ export interface FormTemplateVersion {
 export interface FormTemplate {
   id: number;
   name: string;
+
   json_schema: Record<string, unknown>;
   ui_schema: Record<string, unknown>;
+
   is_active: boolean;
+
   created_by: number | null;
   creator?: User | null;
-  current_version: FormTemplateVersion;
+
+  // Optional because some API responses/tests don't include it
+  current_version?: FormTemplateVersion | null;
+
   created_at: string;
   updated_at: string;
-}
-
-export interface FormTemplate {
-  id: number;
-  name: string;
-  json_schema: Record<string, unknown>;
-  ui_schema: Record<string, unknown>;
-  is_active: boolean;
-
-  current_version: {
-    id: number;
-    template_id: number;
-    version_number: number;
-    name: string;
-    json_schema: Record<string, unknown>;
-    ui_schema: Record<string, unknown>;
-    is_active: boolean;
-  };
 }
 
 export interface FormSubmissionVersion {
   id: number;
   submission_id: number;
+
   user_id: number | null;
   user?: User | null;
+
   form_name: string;
+
   content: Record<string, unknown>;
+
   version_number: number;
+
   created_at: string;
   updated_at: string;
 }
 
 export interface FormSubmission {
   id: number;
+
   form_template_id: number;
+
   current_version_id: number | null;
+
   template?: FormTemplate | null;
-  current_version?: FormSubmissionVersion | null;
-  created_at: string;
-  updated_at: string;
-}
 
-
-export interface FormSubmission {
-  id: number;
-  form_template_id: number;
-  current_version_id: number | null;
-  // New fields
   template_version?: FormTemplateVersion | null;
-  created_by: string;
-  template?: FormTemplate | null;
+
   current_version?: FormSubmissionVersion | null;
+
+  // API can return id or name depending on endpoint
+  created_by?: string | number | null;
+
   created_at: string;
   updated_at: string;
 }
+
 export interface PaginatedResponse<T> {
   data: T[];
+
   links: {
     first: string | null;
     last: string | null;
     prev: string | null;
     next: string | null;
   };
+
   meta: {
     current_page: number;
     from: number | null;
     last_page: number;
+
     links: {
       url: string | null;
       label: string;
       active: boolean;
     }[];
+
     path: string;
+
     per_page: number;
+
     to: number | null;
+
     total: number;
   };
 }
@@ -146,9 +143,7 @@ export interface LoginResponse {
   expires_in: number;
 }
 
-export interface AuthUser extends User {
-  // Add any specific auth user fields if needed
-}
+export interface AuthUser extends User {}
 
 export interface ApiError {
   message: string;

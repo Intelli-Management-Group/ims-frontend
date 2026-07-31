@@ -168,6 +168,21 @@ const syncEntriesForFormArray = (formArray: FormArray): FormArrayEntry[] => {
 	});
 };
 
+const getDefaultElementContent = (
+	fieldType: keyof typeof defaultFormElements,
+): string | undefined => {
+	const element = defaultFormElements[fieldType];
+
+	if (
+		"content" in element &&
+		typeof element.content === "string"
+	) {
+		return element.content;
+	}
+
+	return undefined;
+};
+
 // ============================================================================
 // Query Operations
 // ============================================================================
@@ -219,11 +234,26 @@ export const appendElement: AppendElement = (options) => {
 
 	try {
 		formBuilderCollection.update(FORM_ID, (draft) => {
+
+			const defaultElement = defaultFormElements[fieldType];
+			const defaultContent = getDefaultElementContent(fieldType);
+
 			const newFormElement = {
 				id: id || uuid(),
-				...defaultFormElements[fieldType],
-				content: content || defaultFormElements[fieldType].content,
-				label: content || (defaultFormElements[fieldType] as FormElement).label,
+				...defaultElement,
+
+				...(defaultContent !== undefined
+					? {
+							content: content || defaultContent,
+						}
+					: {}),
+
+				label:
+					content ||
+					("label" in defaultElement
+						? defaultElement.label
+						: undefined),
+
 				name: name || `${fieldType}_${Date.now()}`,
 				required: true,
 				fieldType,
@@ -549,12 +579,22 @@ export const addFormArrayField = (
 	try {
 		formBuilderCollection.update(FORM_ID, (draft) => {
 			const templateElement = defaultFormElements[fieldType];
+			const templateContent = getDefaultElementContent(fieldType);
 			const newFormElement = {
 				id: uuid(),
 				...templateElement,
-				content: templateElement.content,
+
+				...(templateContent !== undefined
+					? {
+							content: templateContent,
+						}
+					: {}),
+
 				label:
-					(templateElement as FormElement).label || templateElement.content,
+					"label" in templateElement
+						? templateElement.label
+						: templateContent,
+
 				name: `${fieldType}_${Date.now()}`.replace(/-/g, "_"),
 				required: true,
 				fieldType,
