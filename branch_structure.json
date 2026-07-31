@@ -1,0 +1,24 @@
+{
+  "default_branch": "master",
+  "branches": [
+    "form-functions",
+    "form-permission",
+    "form-priority",
+    "master",
+    "origin"
+  ],
+  "parent": {
+    "form-functions": "master",
+    "form-permission": "master",
+    "form-priority": "master",
+    "master": null,
+    "origin": "master"
+  },
+  "order": [
+    "master",
+    "form-functions",
+    "form-permission",
+    "form-priority",
+    "origin"
+  ]
+}
