@@ -1,13 +1,21 @@
 import type { FormElement, FormElementOrList } from "@/types/form-types";
 import type { FormArray } from "@/db-collections/form-builder.collections";
 
+interface DefaultObject {
+	[key: string]: DefaultValue;
+}
+
 type DefaultValue =
 	| string
 	| number
 	| boolean
 	| string[]
-	| Record<string, unknown>
-	| { start: string; end: string };
+	| null
+	| undefined
+	| { start: string; end: string }
+	| DefaultObject
+	| DefaultObject[];
+
 type FieldTypeWithOptions = FormElement & {
 	options?: Array<{ value: string; label: React.ReactNode }>;
 };
@@ -54,16 +62,18 @@ const FORM_ELEMENT_DEFAULTS: Record<
 };
 
 // Object map for FormArray defaults
-const FORM_ARRAY_DEFAULTS: Record<string, (field: FormArray) => DefaultValue> =
-	{
-		FormArray: (field: FormArray) => {
-			// Use the template arrayField for defaults, not runtime entries
-			const defaultEntry = processFormElements(
-				field.arrayField as FormElementOrList[],
-			);
-			return [defaultEntry];
-		},
-	};
+const FORM_ARRAY_DEFAULTS: Record<
+	string,
+	(field: FormArray) => DefaultValue
+> = {
+	FormArray: (field: FormArray) => {
+		const defaultEntry = processFormElements(
+			field.arrayField as FormElementOrList[],
+		);
+
+		return [defaultEntry];
+	},
+};
 
 /**
  * Gets the appropriate default value for a form field based on its type
@@ -147,33 +157,48 @@ const processFormElements = (
 /**
  * Recursively converts a value to a JavaScript literal string with proper quoting
  */
-const valueToLiteralString = (value: unknown): string => {
+const valueToLiteralString = (value: DefaultValue): string => {
 	if (typeof value === "string") {
 		return `"${value}"`;
 	}
+
 	if (typeof value === "boolean") {
 		return value.toString();
 	}
+
 	if (typeof value === "number") {
 		return value.toString();
 	}
+
+	if (value === null || value === undefined) {
+		return "undefined";
+	}
+
 	if (Array.isArray(value)) {
 		if (value.length === 0) {
-			return "[] as string[]";
+			return "[]";
 		}
-		const arrayItems = value.map((item) => valueToLiteralString(item));
+
+		const arrayItems = value.map((item) =>
+			valueToLiteralString(item as DefaultValue),
+		);
+
 		return `[\n  ${arrayItems.join(",\n  ")}\n]`;
 	}
-	if (typeof value === "object" && value !== null) {
-		return objectToLiteralString(value as Record<string, unknown>);
+
+	if (typeof value === "object") {
+		return objectToLiteralString(value);
 	}
+
 	return String(value);
 };
 
 /**
  * Converts an object to a JavaScript object literal string with properly quoted keys
  */
-const objectToLiteralString = (obj: Record<string, unknown>): string => {
+const objectToLiteralString = (
+	obj: DefaultObject,
+): string => {
 	const entries = Object.entries(obj);
 
 	if (entries.length === 0) {
@@ -183,7 +208,6 @@ const objectToLiteralString = (obj: Record<string, unknown>): string => {
 	const formattedEntries = entries.map(([key, value]) => {
 		const valueStr = valueToLiteralString(value);
 
-		// Quote keys that need it (contain spaces or start with number)
 		const needsQuotes = /\s/.test(key) || /^\d/.test(key);
 		const quotedKey = needsQuotes ? `"${key}"` : key;
 

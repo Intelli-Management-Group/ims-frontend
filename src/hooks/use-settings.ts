@@ -4,8 +4,6 @@ import {
   formBuilderCollection,
 } from "@/db-collections/form-builder.collections";
 
-type SettingsCollection = FormBuilderSettings & { id?: string };
-
 const defaultSettings: FormBuilderSettings = {
   validationMethod: "onDynamic",
   asyncValidation: 300,

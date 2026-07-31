@@ -234,10 +234,12 @@ const FormArraySchema = v.object({
 // ============================================================================
 // Unified Form Builder Schema
 // ============================================================================
-const FormElementsSchema = v.custom((input) => {
-	// Allow any array-like structure for formElements
-	return Array.isArray(input);
-}, "FormElements must be an array");
+// const FormElementsSchema = v.custom((input) => {
+// 	// Allow any array-like structure for formElements
+// 	return Array.isArray(input);
+// }, "FormElements must be an array");
+
+const FormElementsSchema = FormElementListSchema;
 
 const FormBuilderSchema = v.object({
 	id: v.number(),

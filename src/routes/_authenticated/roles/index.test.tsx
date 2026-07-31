@@ -1,6 +1,5 @@
 import { screen, userEvent, waitFor, within } from '@/test/test-utils';
 import { renderWithRouter } from '@/test/test-utils';
-import { fireEvent } from '@testing-library/react';
 import { rolesApi } from '@/api/roles';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from 'sonner';

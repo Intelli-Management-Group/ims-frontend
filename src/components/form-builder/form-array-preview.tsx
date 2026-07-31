@@ -22,16 +22,19 @@ interface FormArrayPreviewProps {
 }
 
 export function FormArrayPreview({ formArray }: FormArrayPreviewProps) {
-	const { formElements } = useFormBuilderState();
+	const { formElements } = useFormBuilderState() as {
+	formElements: FormElementOrList[];
+	};
 
 	// Get the latest FormArray from the store to ensure reactivity
 	const currentFormArray = formElements.find(
-		(el) =>
-			typeof el === "object" &&
-			el !== null &&
-			"arrayField" in el &&
-			el.id === formArray.id,
+	(el) =>
+		typeof el === "object" &&
+		el !== null &&
+		"arrayField" in el &&
+		el.id === formArray.id,
 	) as FormArray | undefined;
+
 	const { form } = useFormBuilder();
 	const arrayToUse = currentFormArray || formArray;
 	const defaultValue = getDefaultFormElement(arrayToUse.arrayField);
