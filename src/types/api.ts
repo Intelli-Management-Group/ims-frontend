@@ -149,3 +149,31 @@ export interface ApiError {
   message: string;
   errors?: Record<string, string[]>;
 }
+
+
+export type TemplatePermissionAction = 'view' | 'create' | 'edit';
+
+export type TemplatePermissionSubject =
+  | 'role'
+  | 'department'
+  | 'team';
+
+export interface FormTemplatePermission {
+  id: number;
+  form_template_id: number;
+  action: TemplatePermissionAction;
+  permissible_type: TemplatePermissionSubject;
+  permissible_id: number;
+  created_at: string;
+}
+
+export interface MyTemplatePermissions {
+  data: {
+    form_template_id: number;
+    permissions: {
+      view: boolean;
+      create: boolean;
+      edit: boolean;
+    };
+  };
+}

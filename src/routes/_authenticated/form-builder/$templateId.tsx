@@ -11,8 +11,9 @@ export const Route = createFileRoute('/_authenticated/form-builder/$templateId')
 });
 
 function EditFormBuilderPage() {
-  const { templateId } = Route.useParams();
-  const { isMobile, isTablet, isLoading, headerProps } = useEditFormBuilderPage(templateId);
+  const { templateId: routeTemplateId } = Route.useParams();
+  const { isMobile, isTablet, isLoading, headerProps, templateId } =
+    useEditFormBuilderPage(routeTemplateId);
 
   if (isLoading) {
     return (
@@ -22,7 +23,7 @@ function EditFormBuilderPage() {
     );
   }
 
-  if (isMobile) return <FormBuilderMobileLayout headerProps={headerProps} />;
-  if (isTablet) return <FormBuilderTabletLayout headerProps={headerProps} />;
-  return <FormBuilderDesktopLayout headerProps={headerProps} />;
+  if (isMobile) return <FormBuilderMobileLayout headerProps={headerProps} templateId={templateId} />;
+  if (isTablet) return <FormBuilderTabletLayout headerProps={headerProps} templateId={templateId} />;
+  return <FormBuilderDesktopLayout headerProps={headerProps} templateId={templateId} />;
 }

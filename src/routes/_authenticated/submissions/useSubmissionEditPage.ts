@@ -5,6 +5,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { formSubmissionsApi } from '@/api/form-submissions';
 import { useBreadcrumb } from '@/hooks/use-breadcrumb';
+import { useMyTemplatePermissions } from '@/hooks/use-my-template-permissions';
 
 export function useSubmissionEditPage(submissionId: string) {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export function useSubmissionEditPage(submissionId: string) {
 
   const {
     data: submission,
-    isLoading,
+    isLoading: isLoadingSubmission,
     isError,
   } = useQuery({
     queryKey: ['form-submission', numericId],
@@ -24,6 +25,16 @@ export function useSubmissionEditPage(submissionId: string) {
     enabled: isValidId,
     retry: false,
   });
+
+  const templateId = submission?.form_template_id ?? 0;
+
+  const {
+    data: myPermissions,
+    isLoading: isLoadingPermissions,
+  } = useMyTemplatePermissions(templateId);
+
+  const canEdit = myPermissions?.data.permissions.edit ?? true;
+  const isLoading = isLoadingSubmission || (!!templateId && isLoadingPermissions);
 
   useEffect(() => {
     if (!isValidId) {
@@ -38,6 +49,13 @@ export function useSubmissionEditPage(submissionId: string) {
       navigate({ to: '/submissions' });
     }
   }, [isError, navigate]);
+
+  useEffect(() => {
+    if (!isLoadingPermissions && myPermissions && !myPermissions.data.permissions.edit) {
+      toast.error("You don't have permission to edit this submission");
+      navigate({ to: '/submissions/$submissionId', params: { submissionId: String(numericId) } });
+    }
+  }, [isLoadingPermissions, myPermissions, navigate, numericId]);
 
   useEffect(() => {
     if (submission?.current_version && submission.template) {
@@ -82,5 +100,5 @@ export function useSubmissionEditPage(submissionId: string) {
     },
   });
 
-  return { submission, isLoading, isSubmitting, updateSubmission };
+  return { submission, isLoading, canEdit, isSubmitting, updateSubmission };
 }

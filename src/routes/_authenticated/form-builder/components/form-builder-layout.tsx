@@ -3,9 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FormEdit } from '@/components/form-builder/form-edit';
 import { FieldTab } from '@/components/form-builder/form-field-library';
 import { SingleStepFormPreview } from '@/components/form-builder/form-preview';
+import { useAuth } from '@/hooks/use-auth';
+import { PermissionsPanel } from './permissions-panel';
 
 // ─── Sidebar header ──────────────────────────────────────────────────────────
 
@@ -65,13 +68,72 @@ function PanelSection({ title, description, children, className = '' }: PanelSec
   );
 }
 
+// ─── Build / Permissions tabs ─────────────────────────────────────────────────
+// Wraps the Editor+Preview content in a "Build" tab alongside a "Permissions"
+// tab (admin-only) for managing who can view/create/edit against this template.
+
+interface BuildAreaProps {
+  templateId: number | null;
+  buildContent: React.ReactNode;
+  className?: string;
+}
+
+function BuildArea({ templateId, buildContent, className = '' }: BuildAreaProps) {
+  const { isAdmin } = useAuth();
+
+  if (!isAdmin) {
+    return <div className={`h-full min-h-0 min-w-0 ${className}`}>{buildContent}</div>;
+  }
+
+  return (
+    <Tabs defaultValue="build" className={`h-full min-h-0 min-w-0 flex flex-col ${className}`}>
+      <div className="border-b border-border px-4 py-2 shrink-0">
+        <TabsList>
+          <TabsTrigger value="build">Build</TabsTrigger>
+          <TabsTrigger value="permissions">Permissions</TabsTrigger>
+        </TabsList>
+      </div>
+      <TabsContent value="build" className="flex-1 min-h-0 min-w-0 m-0">
+        {buildContent}
+      </TabsContent>
+      <TabsContent value="permissions" className="flex-1 min-h-0 min-w-0 m-0 overflow-y-auto">
+        <div className="p-4">
+          <PermissionsPanel templateId={templateId} />
+        </div>
+      </TabsContent>
+    </Tabs>
+  );
+}
+
 // ─── Layout variants ──────────────────────────────────────────────────────────
 
 export interface FormBuilderLayoutProps {
   headerProps: FormBuilderSidebarHeaderProps;
+  /** The database id of the template being edited; null for a new, unsaved template. */
+  templateId?: number | null;
 }
 
-export function FormBuilderMobileLayout({ headerProps }: FormBuilderLayoutProps) {
+export function FormBuilderMobileLayout({ headerProps, templateId = null }: FormBuilderLayoutProps) {
+  const buildContent = (
+    <>
+      <div className="p-4 border-b border-border shrink-0">
+        <div className="mb-4 pb-2 border-b">
+          <h3 className="text-lg font-semibold text-primary">Editor</h3>
+          <p className="text-sm text-muted-foreground">Design your form elements</p>
+        </div>
+        <FormEdit />
+      </div>
+
+      <div className="p-4 shrink-0">
+        <div className="mb-4 pb-2 border-b">
+          <h3 className="text-lg font-semibold text-primary">Preview</h3>
+          <p className="text-sm text-muted-foreground">See how your form looks</p>
+        </div>
+        <SingleStepFormPreview />
+      </div>
+    </>
+  );
+
   return (
     <main className="h-[calc(100dvh-4rem)] w-full flex flex-col min-h-0">
       <div className="flex flex-col flex-1 min-h-0">
@@ -82,27 +144,31 @@ export function FormBuilderMobileLayout({ headerProps }: FormBuilderLayoutProps)
           </div>
         </div>
 
-        <div className="p-4 border-b border-border shrink-0">
-          <div className="mb-4 pb-2 border-b">
-            <h3 className="text-lg font-semibold text-primary">Editor</h3>
-            <p className="text-sm text-muted-foreground">Design your form elements</p>
-          </div>
-          <FormEdit />
-        </div>
-
-        <div className="p-4 shrink-0">
-          <div className="mb-4 pb-2 border-b">
-            <h3 className="text-lg font-semibold text-primary">Preview</h3>
-            <p className="text-sm text-muted-foreground">See how your form looks</p>
-          </div>
-          <SingleStepFormPreview />
-        </div>
+        <BuildArea templateId={templateId} buildContent={buildContent} className="flex-1" />
       </div>
     </main>
   );
 }
 
-export function FormBuilderTabletLayout({ headerProps }: FormBuilderLayoutProps) {
+export function FormBuilderTabletLayout({ headerProps, templateId = null }: FormBuilderLayoutProps) {
+  const buildContent = (
+    <ResizablePanelGroup direction="horizontal" className="h-full min-h-0 min-w-0">
+      <ResizablePanel defaultSize={50} minSize={30} className="min-w-0">
+        <PanelSection title="Editor" description="Design your form elements" className="border-r">
+          <FormEdit />
+        </PanelSection>
+      </ResizablePanel>
+
+      <ResizableHandle withHandle className="z-20 shrink-0" />
+
+      <ResizablePanel defaultSize={50} minSize={30} className="min-w-0">
+        <PanelSection title="Preview" description="See how your form looks">
+          <SingleStepFormPreview />
+        </PanelSection>
+      </ResizablePanel>
+    </ResizablePanelGroup>
+  );
+
   return (
     <main className="h-[calc(100dvh-4rem)] w-full flex flex-col min-h-0 min-w-0">
       <ResizablePanelGroup direction="vertical" className="flex-1 min-h-0 min-w-0">
@@ -118,28 +184,32 @@ export function FormBuilderTabletLayout({ headerProps }: FormBuilderLayoutProps)
         <ResizableHandle withHandle className="z-20 shrink-0" />
 
         <ResizablePanel defaultSize={60} minSize={30} className="min-h-0 min-w-0">
-          <ResizablePanelGroup direction="horizontal" className="h-full min-h-0 min-w-0">
-            <ResizablePanel defaultSize={50} minSize={30} className="min-w-0">
-              <PanelSection title="Editor" description="Design your form elements" className="border-r">
-                <FormEdit />
-              </PanelSection>
-            </ResizablePanel>
-
-            <ResizableHandle withHandle className="z-20 shrink-0" />
-
-            <ResizablePanel defaultSize={50} minSize={30} className="min-w-0">
-              <PanelSection title="Preview" description="See how your form looks">
-                <SingleStepFormPreview />
-              </PanelSection>
-            </ResizablePanel>
-          </ResizablePanelGroup>
+          <BuildArea templateId={templateId} buildContent={buildContent} />
         </ResizablePanel>
       </ResizablePanelGroup>
     </main>
   );
 }
 
-export function FormBuilderDesktopLayout({ headerProps }: FormBuilderLayoutProps) {
+export function FormBuilderDesktopLayout({ headerProps, templateId = null }: FormBuilderLayoutProps) {
+  const buildContent = (
+    <ResizablePanelGroup direction="horizontal" className="h-full min-h-0 min-w-0">
+      <ResizablePanel defaultSize={50} minSize={25} className="min-w-0">
+        <PanelSection title="Editor" description="Design your form elements" className="border-r">
+          <FormEdit />
+        </PanelSection>
+      </ResizablePanel>
+
+      <ResizableHandle withHandle className="z-20 shrink-0" />
+
+      <ResizablePanel defaultSize={50} minSize={25} className="min-w-0">
+        <PanelSection title="Preview" description="See how your form looks">
+          <SingleStepFormPreview />
+        </PanelSection>
+      </ResizablePanel>
+    </ResizablePanelGroup>
+  );
+
   return (
     <main className="h-[calc(100dvh-4rem)] w-full min-h-0 min-w-0">
       <ResizablePanelGroup direction="horizontal" className="h-full min-h-0 min-w-0">
@@ -159,21 +229,7 @@ export function FormBuilderDesktopLayout({ headerProps }: FormBuilderLayoutProps
         <ResizableHandle withHandle className="z-20 shrink-0" />
 
         <ResizablePanel defaultSize={72} minSize={30} className="min-w-0">
-          <ResizablePanelGroup direction="horizontal" className="h-full min-h-0 min-w-0">
-            <ResizablePanel defaultSize={50} minSize={25} className="min-w-0">
-              <PanelSection title="Editor" description="Design your form elements" className="border-r">
-                <FormEdit />
-              </PanelSection>
-            </ResizablePanel>
-
-            <ResizableHandle withHandle className="z-20 shrink-0" />
-
-            <ResizablePanel defaultSize={50} minSize={25} className="min-w-0">
-              <PanelSection title="Preview" description="See how your form looks">
-                <SingleStepFormPreview />
-              </PanelSection>
-            </ResizablePanel>
-          </ResizablePanelGroup>
+          <BuildArea templateId={templateId} buildContent={buildContent} />
         </ResizablePanel>
       </ResizablePanelGroup>
     </main>

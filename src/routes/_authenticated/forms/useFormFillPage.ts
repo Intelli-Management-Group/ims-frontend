@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { formTemplatesApi } from "@/api/form-templates";
 import { formSubmissionsApi } from "@/api/form-submissions";
 import { useBreadcrumb } from "@/hooks/use-breadcrumb";
+import { useMyTemplatePermissions } from "@/hooks/use-my-template-permissions";
 import axios from "axios";
 
 export function useFormFillPage(templateId: string) {
@@ -20,7 +21,7 @@ export function useFormFillPage(templateId: string) {
 
 	const {
 		data: template,
-		isLoading,
+		isLoading: isLoadingTemplate,
 		isError,
 	} = useQuery({
 		queryKey: ["form-template", numericId],
@@ -28,6 +29,14 @@ export function useFormFillPage(templateId: string) {
 		enabled: isValidId,
 		retry: false,
 	});
+
+	const {
+		data: myPermissions,
+		isLoading: isLoadingPermissions,
+	} = useMyTemplatePermissions(isValidId ? numericId : 0);
+
+	const canFill = myPermissions?.data.permissions.create ?? true;
+	const isLoading = isLoadingTemplate || (isValidId && isLoadingPermissions);
 
 	useEffect(() => {
 		if (!isValidId) {
@@ -42,6 +51,13 @@ export function useFormFillPage(templateId: string) {
 			navigate({ to: "/forms" });
 		}
 	}, [isError, navigate]);
+
+	useEffect(() => {
+		if (!isLoadingPermissions && myPermissions && !myPermissions.data.permissions.create) {
+			toast.error("You don't have permission to fill out this form");
+			navigate({ to: "/forms" });
+		}
+	}, [isLoadingPermissions, myPermissions, navigate]);
 
 	useEffect(() => {
 		if (template) {
@@ -96,6 +112,10 @@ export function useFormFillPage(templateId: string) {
 	});
 
 	const handleSubmit = ({ formData }: IChangeEvent) => {
+		if (!canFill) {
+			toast.error("You don't have permission to fill out this form");
+			return;
+		}
 		if (!formName.trim()) {
 			setFormNameError(true);
 			toast.error("Please enter a form name");
@@ -116,6 +136,7 @@ export function useFormFillPage(templateId: string) {
 	return {
 		template,
 		isLoading,
+		canFill,
 		formName,
 		formNameError,
 		isSubmitting,

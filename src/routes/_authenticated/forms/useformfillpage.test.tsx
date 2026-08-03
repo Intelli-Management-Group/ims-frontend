@@ -21,6 +21,9 @@ vi.mock("@/hooks/use-breadcrumb", () => ({
 vi.mock("@/api/form-templates", () => ({
 	formTemplatesApi: {
 		getFormTemplate: vi.fn(),
+		getMyTemplatePermissions: vi.fn().mockResolvedValue({
+			data: { form_template_id: 1, permissions: { view: true, create: true, edit: true } },
+		}),
 	},
 }));
 
@@ -260,6 +263,24 @@ describe("useFormFillPage", () => {
 
 		await waitFor(() => {
 			expect(toast.error).toHaveBeenCalledWith("Failed to submit form");
+		});
+	});
+
+	it("redirects and shows an error toast when the caller lacks create permission", async () => {
+		vi.mocked(formTemplatesApi.getFormTemplate).mockResolvedValue(
+			sampleTemplate as any,
+		);
+		vi.mocked(formTemplatesApi.getMyTemplatePermissions).mockResolvedValue({
+			data: { form_template_id: 1, permissions: { view: true, create: false, edit: true } },
+		} as any);
+
+		renderHook(() => useFormFillPage("1"), { wrapper: createWrapper() });
+
+		await waitFor(() => {
+			expect(toast.error).toHaveBeenCalledWith(
+				"You don't have permission to fill out this form",
+			);
+			expect(mockNavigate).toHaveBeenCalledWith({ to: "/forms" });
 		});
 	});
 

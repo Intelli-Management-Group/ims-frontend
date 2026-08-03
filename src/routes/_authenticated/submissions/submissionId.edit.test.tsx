@@ -15,6 +15,14 @@ vi.mock('@/api/form-submissions', () => ({
   },
 }));
 
+vi.mock('@/api/form-templates', () => ({
+  formTemplatesApi: {
+    getMyTemplatePermissions: vi.fn().mockResolvedValue({
+      data: { form_template_id: 10, permissions: { view: true, create: true, edit: true } },
+    }),
+  },
+}));
+
 vi.mock('@/hooks/use-breadcrumb', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/hooks/use-breadcrumb')>();
   return {
