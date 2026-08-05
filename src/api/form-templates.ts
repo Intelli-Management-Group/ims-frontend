@@ -62,24 +62,18 @@ export const formTemplatesApi = {
 
     return data.data;
   },
-getTemplatePermissions: async (templateId: number) => {
-  console.log("Calling permission API:", templateId);
 
-  try {
-    const response = await apiClient.get(
-      `/form-templates/${templateId}/permissions`
-    );
-
-    console.log("SUCCESS");
-    console.log(response);
-
-    return response.data;
-  } catch (error) {
-    console.error("Permission API Error:", error);
-
-    throw error;
-  }
-},
+  getTemplatePermissions: async (templateId: number) => {
+    try {
+      const response = await apiClient.get(
+        `/form-templates/${templateId}/permissions`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Permission API Error:", error);
+      throw error;
+    }
+  },
 
   createTemplatePermission: async (
     templateId: number,

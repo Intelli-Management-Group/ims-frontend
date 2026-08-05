@@ -47,9 +47,7 @@ export function usePermissionsPanel(templateId: number | null) {
   const { permissions, isLoading, createPermission, deletePermission } = useTemplatePermissions(
     templateId ?? 0,
   );
-
-  console.log("templateId:", templateId);
-  console.log(permissions);
+  
   const { data: rolesData, isLoading: isLoadingRoles } = useQuery({
     queryKey: ['roles-all'],
     queryFn: () => rolesApi.getRoles({ per_page: 100 }),
