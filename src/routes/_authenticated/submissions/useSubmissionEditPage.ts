@@ -26,14 +26,15 @@ export function useSubmissionEditPage(submissionId: string) {
     retry: false,
   });
 
-  const templateId = submission?.form_template_id ?? 0;
+  const templateId = submission?.template?.id ?? 0;
 
   const {
     data: myPermissions,
     isLoading: isLoadingPermissions,
+    isError: isPermissionsError,
   } = useMyTemplatePermissions(templateId);
 
-  const canEdit = myPermissions?.data.permissions.edit ?? true;
+  const canEdit = myPermissions?.data.permissions.edit ?? false;
   const isLoading = isLoadingSubmission || (!!templateId && isLoadingPermissions);
 
   useEffect(() => {
@@ -51,11 +52,27 @@ export function useSubmissionEditPage(submissionId: string) {
   }, [isError, navigate]);
 
   useEffect(() => {
-    if (!isLoadingPermissions && myPermissions && !myPermissions.data.permissions.edit) {
-      toast.error("You don't have permission to edit this submission");
-      navigate({ to: '/submissions/$submissionId', params: { submissionId: String(numericId) } });
+    if (!templateId || isLoadingPermissions) {
+      return;
     }
-  }, [isLoadingPermissions, myPermissions, navigate, numericId]);
+
+    if (isPermissionsError) {
+      toast.error("Unable to verify your permissions");
+      navigate({
+        to: "/submissions/$submissionId",
+        params: { submissionId: String(numericId) },
+      });
+      return;
+    }
+
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this submission");
+      navigate({
+        to: "/submissions/$submissionId",
+        params: { submissionId: String(numericId) },
+      });
+    }
+  }, [templateId, isLoadingPermissions, isPermissionsError, canEdit, navigate, numericId]);
 
   useEffect(() => {
     if (submission?.current_version && submission.template) {

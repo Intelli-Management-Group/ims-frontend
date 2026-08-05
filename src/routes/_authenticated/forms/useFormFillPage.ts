@@ -33,9 +33,10 @@ export function useFormFillPage(templateId: string) {
 	const {
 		data: myPermissions,
 		isLoading: isLoadingPermissions,
+		isError: isPermissionsError,
 	} = useMyTemplatePermissions(isValidId ? numericId : 0);
 
-	const canFill = myPermissions?.data.permissions.create ?? true;
+	const canFill = myPermissions?.data.permissions.create ?? false;
 	const isLoading = isLoadingTemplate || (isValidId && isLoadingPermissions);
 
 	useEffect(() => {
@@ -53,11 +54,21 @@ export function useFormFillPage(templateId: string) {
 	}, [isError, navigate]);
 
 	useEffect(() => {
-		if (!isLoadingPermissions && myPermissions && !myPermissions.data.permissions.create) {
+		if (isLoadingPermissions) {
+			return;
+		}
+
+		if (isPermissionsError) {
+			toast.error("Unable to verify your permissions");
+			navigate({ to: "/forms" });
+			return;
+		}
+
+		if (!canFill) {
 			toast.error("You don't have permission to fill out this form");
 			navigate({ to: "/forms" });
 		}
-	}, [isLoadingPermissions, myPermissions, navigate]);
+		}, [isLoadingPermissions, isPermissionsError, canFill, navigate,]);
 
 	useEffect(() => {
 		if (template) {
