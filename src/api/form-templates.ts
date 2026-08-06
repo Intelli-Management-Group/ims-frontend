@@ -64,15 +64,11 @@ export const formTemplatesApi = {
   },
 
   getTemplatePermissions: async (templateId: number) => {
-    try {
-      const response = await apiClient.get(
-        `/form-templates/${templateId}/permissions`
-      );
-      return response.data;
-    } catch (error) {
-      console.error("Permission API Error:", error);
-      throw error;
-    }
+    const { data } = await apiClient.get<{
+      data: FormTemplatePermission[];
+    }>(`/form-templates/${templateId}/permissions`);
+
+    return data;
   },
 
   createTemplatePermission: async (
@@ -83,7 +79,9 @@ export const formTemplatesApi = {
       permissible_id: number;
     },
   ) => {
-    const { data } = await apiClient.post<FormTemplatePermission>(
+    const { data } = await apiClient.post<{
+      data: FormTemplatePermission;
+    }>(
       `/form-templates/${templateId}/permissions`,
       payload,
     );

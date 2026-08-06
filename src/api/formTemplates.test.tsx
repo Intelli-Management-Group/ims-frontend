@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { formTemplatesApi } from '@/api/form-templates';
 import apiClient from '@/api/client';
@@ -35,14 +35,15 @@ describe('formTemplatesApi.getTemplatePermissions', () => {
     expect(result).toEqual(responseBody);
   });
 
-  it('logs and rethrows when the request fails', async () => {
+  it('propagates errors from the API client without logging', async () => {
     const error = new Error('network down');
     vi.mocked(apiClient.get).mockRejectedValue(error);
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     await expect(formTemplatesApi.getTemplatePermissions(5)).rejects.toThrow('network down');
 
-    expect(consoleSpy).toHaveBeenCalledWith('Permission API Error:', error);
+    // No try/catch around this call anymore -- errors propagate untouched.
+    expect(consoleSpy).not.toHaveBeenCalled();
 
     consoleSpy.mockRestore();
   });
@@ -51,14 +52,16 @@ describe('formTemplatesApi.getTemplatePermissions', () => {
 // ---- createTemplatePermission -------------------------------------------
 
 describe('formTemplatesApi.createTemplatePermission', () => {
-  it('POSTs the payload to the permissions endpoint and returns the created permission', async () => {
+  it('POSTs the payload to the permissions endpoint and returns the raw response body', async () => {
     const created: FormTemplatePermission = {
       id: 99,
       action: 'view',
       permissible_type: 'role',
       permissible_id: 1,
     } as FormTemplatePermission;
-    vi.mocked(apiClient.post).mockResolvedValue({ data: created });
+    // The client now returns `{ data: created }` as-is -- it is not unwrapped
+    // to the bare permission object.
+    vi.mocked(apiClient.post).mockResolvedValue({ data: { data: created } });
 
     const payload = {
       action: 'view' as const,
@@ -69,7 +72,7 @@ describe('formTemplatesApi.createTemplatePermission', () => {
     const result = await formTemplatesApi.createTemplatePermission(5, payload);
 
     expect(apiClient.post).toHaveBeenCalledWith('/form-templates/5/permissions', payload);
-    expect(result).toEqual(created);
+    expect(result).toEqual({ data: created });
   });
 
   it('propagates errors from the API client without swallowing them', async () => {
@@ -110,11 +113,14 @@ describe('formTemplatesApi.deleteTemplatePermission', () => {
 
 describe('formTemplatesApi.getMyTemplatePermissions', () => {
   it('GETs the my-permissions endpoint for the given template', async () => {
-    const myPermissions: MyTemplatePermissions = {
-      view: true,
-      create: false,
-      edit: true,
-    } as MyTemplatePermissions;
+    const myPermissions = {
+      form_template_id: 5,
+      permissions: {
+        view: true,
+        create: false,
+        edit: true,
+      },
+    } as unknown as MyTemplatePermissions;
     vi.mocked(apiClient.get).mockResolvedValue({ data: myPermissions });
 
     const result = await formTemplatesApi.getMyTemplatePermissions(5);
