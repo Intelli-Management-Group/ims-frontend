@@ -33,7 +33,10 @@ describe('useFormBuilderPage save flow with draft permissions', () => {
 
     const { result } = renderHook(() => useFormBuilderPage());
 
-    // simulate drafting a permission via the callback
+    act(() => {
+      result.current.headerProps.onTemplateNameChange('Contact form');
+    });
+
     act(() => {
       result.current.onPermissionDraftChange?.([
         { action: 'view', permissible_type: 'role', permissible_id: 1, subjectName: 'Admin' } as any,
