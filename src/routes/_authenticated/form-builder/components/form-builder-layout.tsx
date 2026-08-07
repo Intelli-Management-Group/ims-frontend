@@ -9,6 +9,7 @@ import { FieldTab } from '@/components/form-builder/form-field-library';
 import { SingleStepFormPreview } from '@/components/form-builder/form-preview';
 import { useAuth } from '@/hooks/use-auth';
 import { PermissionsPanel } from './permissions-panel';
+import type { PermissionGrantDraft } from './usePermissionsPanel';
 
 // ─── Sidebar header ──────────────────────────────────────────────────────────
 
@@ -76,9 +77,10 @@ interface BuildAreaProps {
   templateId: number | null;
   buildContent: React.ReactNode;
   className?: string;
+  onPermissionDraftChange?: (grants: PermissionGrantDraft[]) => void;
 }
 
-function BuildArea({ templateId, buildContent, className = '' }: BuildAreaProps) {
+function BuildArea({ templateId, buildContent, className = '', onPermissionDraftChange }: BuildAreaProps) {
   const { isAdmin } = useAuth();
 
   if (!isAdmin) {
@@ -98,7 +100,7 @@ function BuildArea({ templateId, buildContent, className = '' }: BuildAreaProps)
       </TabsContent>
       <TabsContent value="permissions" className="flex-1 min-h-0 min-w-0 m-0 overflow-y-auto">
         <div className="p-4">
-          <PermissionsPanel templateId={templateId} />
+          <PermissionsPanel templateId={templateId} onDraftPermissionsChange={onPermissionDraftChange} />
         </div>
       </TabsContent>
     </Tabs>
@@ -111,9 +113,10 @@ export interface FormBuilderLayoutProps {
   headerProps: FormBuilderSidebarHeaderProps;
   /** The database id of the template being edited; null for a new, unsaved template. */
   templateId?: number | null;
+  onPermissionDraftChange?: (grants: PermissionGrantDraft[]) => void;
 }
 
-export function FormBuilderMobileLayout({ headerProps, templateId = null }: FormBuilderLayoutProps) {
+export function FormBuilderMobileLayout({ headerProps, templateId = null, onPermissionDraftChange }: FormBuilderLayoutProps) {
   const buildContent = (
     <>
       <div className="p-4 border-b border-border shrink-0">
@@ -144,13 +147,13 @@ export function FormBuilderMobileLayout({ headerProps, templateId = null }: Form
           </div>
         </div>
 
-        <BuildArea templateId={templateId} buildContent={buildContent} className="flex-1" />
+        <BuildArea templateId={templateId} buildContent={buildContent} className="flex-1" onPermissionDraftChange={onPermissionDraftChange} />
       </div>
     </main>
   );
 }
 
-export function FormBuilderTabletLayout({ headerProps, templateId = null }: FormBuilderLayoutProps) {
+export function FormBuilderTabletLayout({ headerProps, templateId = null, onPermissionDraftChange }: FormBuilderLayoutProps) {
   const buildContent = (
     <ResizablePanelGroup direction="horizontal" className="h-full min-h-0 min-w-0">
       <ResizablePanel defaultSize={50} minSize={30} className="min-w-0">
@@ -184,14 +187,14 @@ export function FormBuilderTabletLayout({ headerProps, templateId = null }: Form
         <ResizableHandle withHandle className="z-20 shrink-0" />
 
         <ResizablePanel defaultSize={60} minSize={30} className="min-h-0 min-w-0">
-          <BuildArea templateId={templateId} buildContent={buildContent} />
+          <BuildArea templateId={templateId} buildContent={buildContent} onPermissionDraftChange={onPermissionDraftChange} />
         </ResizablePanel>
       </ResizablePanelGroup>
     </main>
   );
 }
 
-export function FormBuilderDesktopLayout({ headerProps, templateId = null }: FormBuilderLayoutProps) {
+export function FormBuilderDesktopLayout({ headerProps, templateId = null, onPermissionDraftChange }: FormBuilderLayoutProps) {
   const buildContent = (
     <ResizablePanelGroup direction="horizontal" className="h-full min-h-0 min-w-0">
       <ResizablePanel defaultSize={50} minSize={25} className="min-w-0">
@@ -229,7 +232,7 @@ export function FormBuilderDesktopLayout({ headerProps, templateId = null }: For
         <ResizableHandle withHandle className="z-20 shrink-0" />
 
         <ResizablePanel defaultSize={72} minSize={30} className="min-w-0">
-          <BuildArea templateId={templateId} buildContent={buildContent} />
+          <BuildArea templateId={templateId} buildContent={buildContent} onPermissionDraftChange={onPermissionDraftChange} />
         </ResizablePanel>
       </ResizablePanelGroup>
     </main>

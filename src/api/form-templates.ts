@@ -37,12 +37,12 @@ export const formTemplatesApi = {
     ui_schema: Record<string, unknown>;
     is_active?: boolean;
   }) => {
-    const { data } = await apiClient.post<FormTemplate>(
+    const { data } = await apiClient.post<{ data: FormTemplate }>(
       '/form-templates',
       payload,
     );
 
-    return data;
+    return data.data;
   },
 
   updateFormTemplate: async (
