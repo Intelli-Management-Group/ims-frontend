@@ -9,7 +9,7 @@ import { FieldTab } from '@/components/form-builder/form-field-library';
 import { SingleStepFormPreview } from '@/components/form-builder/form-preview';
 import { useAuth } from '@/hooks/use-auth';
 import { PermissionsPanel } from './permissions-panel';
-import type { PermissionGrantDraft } from './usePermissionsPanel';
+import type { PermissionGrantRow } from './usePermissionsPanel';
 
 // ─── Sidebar header ──────────────────────────────────────────────────────────
 
@@ -77,7 +77,7 @@ interface BuildAreaProps {
   templateId: number | null;
   buildContent: React.ReactNode;
   className?: string;
-  onPermissionDraftChange?: (grants: PermissionGrantDraft[]) => void;
+  onPermissionDraftChange?: (grants: PermissionGrantRow[]) => void;
 }
 
 function BuildArea({ templateId, buildContent, className = '', onPermissionDraftChange }: BuildAreaProps) {
@@ -113,7 +113,7 @@ export interface FormBuilderLayoutProps {
   headerProps: FormBuilderSidebarHeaderProps;
   /** The database id of the template being edited; null for a new, unsaved template. */
   templateId?: number | null;
-  onPermissionDraftChange?: (grants: PermissionGrantDraft[]) => void;
+  onPermissionDraftChange?: (grants: PermissionGrantRow[]) => void;
 }
 
 export function FormBuilderMobileLayout({ headerProps, templateId = null, onPermissionDraftChange }: FormBuilderLayoutProps) {

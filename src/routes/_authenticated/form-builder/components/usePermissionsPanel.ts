@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import axios from 'axios';
@@ -24,6 +24,13 @@ export interface PermissionGrantRow extends FormTemplatePermission {
   subjectName: string;
 }
 
+export interface PermissionGrantDraft {
+  action: TemplatePermissionAction;
+  permissible_type: TemplatePermissionSubject;
+  permissible_id: number;
+  subjectName: string;
+}
+
 function getErrorMessage(error: unknown, fallback: string): string {
   if (axios.isAxiosError(error)) {
     const response = error.response?.data;
@@ -36,17 +43,25 @@ function getErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
-export function usePermissionsPanel(templateId: number | null) {
+export function usePermissionsPanel(
+  templateId: number | null,
+  onDraftPermissionsChange?: (grants: PermissionGrantDraft[]) => void,
+) {
   const [subjectType, setSubjectType] = useState<TemplatePermissionSubject>('role');
   const [subjectId, setSubjectId] = useState<string>('');
   const [selectedActions, setSelectedActions] = useState<TemplatePermissionAction[]>([]);
   const [pendingRevoke, setPendingRevoke] = useState<FormTemplatePermission | null>(null);
+  const [draftPermissions, setDraftPermissions] = useState<PermissionGrantDraft[]>([]);
 
-  const enabled = templateId !== null;
+  const enabled = true;
 
   const { permissions, isLoading, createPermission, deletePermission } = useTemplatePermissions(
     templateId ?? 0,
   );
+
+  useEffect(() => {
+    onDraftPermissionsChange?.(draftPermissions);
+  }, [draftPermissions, onDraftPermissionsChange]);
   
   const { data: rolesData, isLoading: isLoadingRoles } = useQuery({
     queryKey: ['roles-all'],
@@ -90,21 +105,23 @@ export function usePermissionsPanel(templateId: number | null) {
     };
   }, [roles, departments, teams]);
 
+  const effectivePermissions = templateId === null ? draftPermissions : permissions;
+
   const grants: PermissionGrantRow[] = useMemo(
     () =>
-      [...permissions]
-        .sort((a, b) => a.action.localeCompare(b.action))
-        .map((permission) => ({
+      [...effectivePermissions]
+        .sort((a: any, b: any) => a.action.localeCompare(b.action))
+        .map((permission: any) => ({
           ...permission,
           subjectName: resolveSubjectName(permission.permissible_type, permission.permissible_id),
         })),
-    [permissions, resolveSubjectName],
+    [effectivePermissions, resolveSubjectName],
   );
 
   /** Which actions currently have zero grants at all — i.e. are wide open to every user. */
   const openActions = useMemo(
-    () => PERMISSION_ACTIONS.filter((action) => !permissions.some((p) => p.action === action)),
-    [permissions],
+    () => PERMISSION_ACTIONS.filter((action) => !effectivePermissions.some((p: any) => p.action === action)),
+    [effectivePermissions],
   );
 
   const handleSubjectTypeChange = (value: TemplatePermissionSubject) => {
@@ -121,10 +138,25 @@ export function usePermissionsPanel(templateId: number | null) {
   const canSubmitGrant = subjectId !== '' && selectedActions.length > 0;
 
   const handleGrant = async () => {
-    if (!enabled || !canSubmitGrant) return;
+    if (!canSubmitGrant) return;
 
     const numericSubjectId = Number(subjectId);
     const actionsToGrant = [...selectedActions];
+
+    if (templateId === null) {
+      const grantsToAdd = actionsToGrant.map((action) => ({
+        action,
+        permissible_type: subjectType,
+        permissible_id: numericSubjectId,
+        subjectName: resolveSubjectName(subjectType, numericSubjectId),
+      }));
+
+      setDraftPermissions((prev) => [...prev, ...grantsToAdd]);
+      toast.success(actionsToGrant.length > 1 ? 'Permissions granted' : 'Permission granted');
+      setSubjectId('');
+      setSelectedActions([]);
+      return;
+    }
 
     try {
       await Promise.all(
@@ -151,6 +183,14 @@ export function usePermissionsPanel(templateId: number | null) {
 
   const confirmRevoke = async () => {
     if (!pendingRevoke) return;
+
+    if (templateId === null) {
+      setDraftPermissions((prev) => prev.filter((grant) => grant !== pendingRevoke));
+      toast.success('Permission revoked');
+      setPendingRevoke(null);
+      return;
+    }
+
     try {
       await deletePermission.mutateAsync(pendingRevoke.id);
       toast.success('Permission revoked');

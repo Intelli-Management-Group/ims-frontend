@@ -8,7 +8,7 @@ import useFormBuilderState from '@/hooks/use-form-builder-state';
 import { generateFormJsonSchema, generateFormUiSchema } from '@/lib/schema-generators';
 import { resetFormBuilder, setFormName } from '@/services/form-builder.service';
 import axios from 'axios';
-import type { PermissionGrantDraft } from './components/usePermissionsPanel';
+import type { PermissionGrantRow, PermissionGrantDraft } from './components/usePermissionsPanel';
 
 export function useFormBuilderPage() {
   const isMobile = useIsMobile();

@@ -137,17 +137,26 @@ beforeEach(() => {
 // ---- Tests -----------------------------------------------------------
 
 describe('PermissionsPanel', () => {
-  describe('disabled state', () => {
+  describe('draft permissions', () => {
+    it('allows setting draft permissions while creating the template', () => {
+      setHook({ enabled: true });
+
+      render(<PermissionsPanel templateId={null} />);
+
+      // Grant form should be present for draft templates
+      expect(screen.getByRole('button', { name: 'Grant access' })).toBeInTheDocument();
+      expect(screen.getByText('Add a restriction')).toBeInTheDocument();
+    });
+
     it('shows the "save the template first" empty state when disabled', () => {
       setHook({ enabled: false });
 
       render(<PermissionsPanel templateId={null} />);
 
-      expect(screen.getByText('Save the template first')).toBeInTheDocument();
+      expect(screen.getByText('Permissions are ready to configure')).toBeInTheDocument();
       expect(
-        screen.getByText(/access restrictions can be managed once this template has been saved/i),
+        screen.getByText(/add any restrictions now and they will be applied when you save the template\./i),
       ).toBeInTheDocument();
-      expect(screen.queryByText('Add a restriction')).not.toBeInTheDocument();
     });
   });
 

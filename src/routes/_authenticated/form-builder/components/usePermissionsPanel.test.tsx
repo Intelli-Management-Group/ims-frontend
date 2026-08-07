@@ -107,15 +107,18 @@ beforeEach(() => {
 
 describe('usePermissionsPanel', () => {
   describe('enabled / disabled state', () => {
-    it('is disabled when templateId is null and does not fetch subject lists', async () => {
+    it('is enabled for draft templates and fetches subject lists when templateId is null', async () => {
       const { result } = renderHook(() => usePermissionsPanel(null), {
         wrapper: createWrapper(),
       });
 
-      expect(result.current.enabled).toBe(false);
-      expect(rolesApi.getRoles).not.toHaveBeenCalled();
-      expect(departmentsApi.getDepartments).not.toHaveBeenCalled();
-      expect(teamsApi.getTeams).not.toHaveBeenCalled();
+      expect(result.current.enabled).toBe(true);
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(rolesApi.getRoles).toHaveBeenCalledWith({ per_page: 100 });
+      expect(departmentsApi.getDepartments).toHaveBeenCalledWith({ per_page: 100 });
+      expect(teamsApi.getTeams).toHaveBeenCalledWith({ per_page: 100 });
     });
 
     it('is enabled and fetches subject lists when templateId is provided', async () => {

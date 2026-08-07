@@ -25,6 +25,7 @@ import {
   PERMISSION_ACTIONS,
   PERMISSION_SUBJECTS,
   usePermissionsPanel,
+  type PermissionGrantRow,
 } from './usePermissionsPanel';
 
 const ACTION_LABELS: Record<string, string> = {
@@ -41,9 +42,10 @@ const SUBJECT_LABELS: Record<string, string> = {
 
 interface PermissionsPanelProps {
   templateId: number | null;
+  onDraftPermissionsChange?: (grants: any[]) => void;
 }
 
-export function PermissionsPanel({ templateId }: PermissionsPanelProps) {
+export function PermissionsPanel({ templateId, onDraftPermissionsChange }: PermissionsPanelProps) {
   const {
     enabled,
     isLoading,
@@ -64,7 +66,7 @@ export function PermissionsPanel({ templateId }: PermissionsPanelProps) {
     requestRevoke,
     cancelRevoke,
     confirmRevoke,
-  } = usePermissionsPanel(templateId);
+  } = usePermissionsPanel(templateId, onDraftPermissionsChange);
 
   if (!enabled) {
     return (
@@ -73,10 +75,9 @@ export function PermissionsPanel({ templateId }: PermissionsPanelProps) {
           <EmptyMedia variant="icon">
             <ShieldOff />
           </EmptyMedia>
-          <EmptyTitle>Save the template first</EmptyTitle>
+          <EmptyTitle>Permissions are ready to configure</EmptyTitle>
           <EmptyDescription>
-            Access restrictions can be managed once this template has been saved for the first
-            time.
+            Add any restrictions now and they will be applied when you save the template.
           </EmptyDescription>
         </EmptyHeader>
       </Empty>
