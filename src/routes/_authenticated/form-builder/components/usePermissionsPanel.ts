@@ -185,7 +185,14 @@ export function usePermissionsPanel(
     if (!pendingRevoke) return;
 
     if (templateId === null) {
-      setDraftPermissions((prev) => prev.filter((grant) => grant !== pendingRevoke));
+      setDraftPermissions((prev) =>
+        prev.filter(
+          (grant) =>
+            grant.action !== pendingRevoke.action ||
+            grant.permissible_type !== pendingRevoke.permissible_type ||
+            grant.permissible_id !== pendingRevoke.permissible_id,
+        ),
+      );
       toast.success('Permission revoked');
       setPendingRevoke(null);
       return;
