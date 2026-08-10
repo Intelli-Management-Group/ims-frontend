@@ -25,7 +25,6 @@ import {
   PERMISSION_ACTIONS,
   PERMISSION_SUBJECTS,
   usePermissionsPanel,
-  type PermissionGrantRow,
 } from './usePermissionsPanel';
 
 const ACTION_LABELS: Record<string, string> = {
