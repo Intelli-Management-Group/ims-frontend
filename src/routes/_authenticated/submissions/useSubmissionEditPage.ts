@@ -5,6 +5,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { formSubmissionsApi } from '@/api/form-submissions';
 import { useBreadcrumb } from '@/hooks/use-breadcrumb';
+import { useMyTemplatePermissions } from '@/hooks/use-my-template-permissions';
 
 export function useSubmissionEditPage(submissionId: string) {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export function useSubmissionEditPage(submissionId: string) {
 
   const {
     data: submission,
-    isLoading,
+    isLoading: isLoadingSubmission,
     isError,
   } = useQuery({
     queryKey: ['form-submission', numericId],
@@ -24,6 +25,17 @@ export function useSubmissionEditPage(submissionId: string) {
     enabled: isValidId,
     retry: false,
   });
+
+  const templateId = submission?.template?.id ?? 0;
+
+  const {
+    data: myPermissions,
+    isLoading: isLoadingPermissions,
+    isError: isPermissionsError,
+  } = useMyTemplatePermissions(templateId);
+
+  const canEdit = myPermissions?.data.permissions.edit ?? false;
+  const isLoading = isLoadingSubmission || (!!templateId && isLoadingPermissions);
 
   useEffect(() => {
     if (!isValidId) {
@@ -38,6 +50,29 @@ export function useSubmissionEditPage(submissionId: string) {
       navigate({ to: '/submissions' });
     }
   }, [isError, navigate]);
+
+  useEffect(() => {
+    if (!templateId || isLoadingPermissions) {
+      return;
+    }
+
+    if (isPermissionsError) {
+      toast.error("Unable to verify your permissions");
+      navigate({
+        to: "/submissions/$submissionId",
+        params: { submissionId: String(numericId) },
+      });
+      return;
+    }
+
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this submission");
+      navigate({
+        to: "/submissions/$submissionId",
+        params: { submissionId: String(numericId) },
+      });
+    }
+  }, [templateId, isLoadingPermissions, isPermissionsError, canEdit, navigate, numericId]);
 
   useEffect(() => {
     if (submission?.current_version && submission.template) {
@@ -82,5 +117,5 @@ export function useSubmissionEditPage(submissionId: string) {
     },
   });
 
-  return { submission, isLoading, isSubmitting, updateSubmission };
+  return { submission, isLoading, canEdit, isSubmitting, updateSubmission };
 }

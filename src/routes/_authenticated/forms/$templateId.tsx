@@ -18,6 +18,7 @@ function FormFillPage() {
 	const {
 		template,
 		isLoading,
+		canFill,
 		formName,
 		formNameError,
 		isSubmitting,
@@ -44,7 +45,7 @@ function FormFillPage() {
 		);
 	}
 
-	if (!template) {
+	if (!template || !canFill) {
 		return null;
 	}
 
