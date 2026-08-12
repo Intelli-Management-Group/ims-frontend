@@ -9,6 +9,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { getConfirmButtonLabel, createConfirmClickHandler } from './confirm-dialog.utils';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -43,13 +44,10 @@ export function ConfirmDialog({
           <AlertDialogAction asChild>
             <Button
               variant="destructive"
-              onClick={(e) => {
-                e.preventDefault();
-                onConfirm();
-              }}
+              onClick={createConfirmClickHandler(onConfirm)}
               disabled={isLoading}
             >
-              {isLoading ? 'Processing...' : confirmText}
+              {getConfirmButtonLabel(isLoading, confirmText)}
             </Button>
           </AlertDialogAction>
         </AlertDialogFooter>

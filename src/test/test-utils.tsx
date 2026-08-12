@@ -44,7 +44,7 @@ export function renderWithProviders(
 
   const queryClient = createTestQueryClient();
   if (user) {
-    vi.mocked(authApi.me).mockResolvedValue(user);
+    vi.mocked(authApi.me).mockImplementation(() => Promise.resolve(user));
     localStorage.setItem('access_token', 'test-token');
   }
 
@@ -82,7 +82,7 @@ export function renderWithRouter({
 
   const queryClient = createTestQueryClient();
   if (user) {
-    vi.mocked(authApi.me).mockResolvedValue(user);
+    vi.mocked(authApi.me).mockImplementation(() => Promise.resolve(user));
   }
 
   const router = createRouter({ routeTree });

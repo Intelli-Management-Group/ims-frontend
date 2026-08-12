@@ -1,4 +1,3 @@
-import { LayoutDashboard, Users, Building2, Users2, ShieldCheck, Settings } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -12,39 +11,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { Link, useLocation } from '@tanstack/react-router';
-
-const navItems = [
-  {
-    title: 'Dashboard',
-    url: '/',
-    icon: LayoutDashboard,
-  },
-  {
-    title: 'Users',
-    url: '/users',
-    icon: Users,
-  },
-  {
-    title: 'Departments',
-    url: '/departments',
-    icon: Building2,
-  },
-  {
-    title: 'Teams',
-    url: '/teams',
-    icon: Users2,
-  },
-  {
-    title: 'Roles',
-    url: '/roles',
-    icon: ShieldCheck,
-  },
-  {
-    title: 'Settings',
-    url: '/settings',
-    icon: Settings,
-  },
-];
+import { navItems, isNavActive } from './app-sidebar.utils';
 
 export function AppSidebar() {
   const location = useLocation();
@@ -68,7 +35,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    isActive={location.pathname === item.url}
+                    isActive={isNavActive(location.pathname, item)}
                     tooltip={item.title}
                   >
                     <Link to={item.url}>
