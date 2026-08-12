@@ -106,8 +106,9 @@ describe('useSubmissionEditForm', () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 
-  it('calls onSave with trimmed name, content, and the pinned version number', () => {
+  it('calls onSave with trimmed name, content, pinned version number, and priority', () => {
     const onSave = vi.fn();
+
     const { result } = renderHook(() =>
       useSubmissionEditForm({
         submission: buildSubmission({
@@ -122,6 +123,7 @@ describe('useSubmissionEditForm', () => {
             created_at: '',
             updated_at: '',
           },
+          priority: undefined,
         }),
         onSave,
       }),
@@ -130,17 +132,50 @@ describe('useSubmissionEditForm', () => {
     act(() => {
       result.current.handleFormNameChange('  Trimmed Name  ');
     });
+
     act(() => {
-      result.current.handleSubmit({ formData: { answer: 'updated' } } as IChangeEvent);
+      result.current.handleSubmit({
+        formData: { answer: 'updated' },
+      } as IChangeEvent);
     });
 
     expect(onSave).toHaveBeenCalledWith({
       formName: 'Trimmed Name',
       content: { answer: 'updated' },
       versionNumber: 4,
+      priority: null,
     });
   });
 
+  it('calls onSave with the selected priority', () => {
+    const onSave = vi.fn();
+
+    const { result } = renderHook(() =>
+      useSubmissionEditForm({
+        submission: buildSubmission({
+          priority: undefined,
+        }),
+        onSave,
+      }),
+    );
+
+    act(() => {
+      result.current.setPriority('medium');
+    });
+
+    act(() => {
+      result.current.handleSubmit({
+        formData: { answer: 'updated' },
+      } as IChangeEvent);
+    });
+
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        priority: 'medium',
+      }),
+    );
+  });
+  
   it('does not call onSave when formData is undefined', () => {
     const onSave = vi.fn();
     const { result } = renderHook(() =>

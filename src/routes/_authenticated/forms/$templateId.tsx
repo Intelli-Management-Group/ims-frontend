@@ -7,6 +7,14 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { PRIORITY_OPTIONS } from "@/constants/priority-options";
 import { useFormFillPage } from "./useFormFillPage";
 
 export const Route = createFileRoute("/_authenticated/forms/$templateId")({
@@ -24,6 +32,8 @@ function FormFillPage() {
 		handleSubmit,
 		handleFormNameChange,
 		goBack,
+		priority,
+		setPriority,
 	} = useFormFillPage(templateId);
 
 	if (isLoading) {
@@ -79,6 +89,31 @@ function FormFillPage() {
 				{formNameError && (
 					<p className="text-destructive text-sm">Form name is required.</p>
 				)}
+			</div>
+
+			<div className="grid gap-4 sm:grid-cols-2">
+				<div className="space-y-2">
+					<Label htmlFor="priority" className="gap-0.5">
+						Priority
+					</Label>
+					<Select
+						value={priority ?? 'none'}
+						onValueChange={(value) => setPriority(value === 'none' ? null : value)}
+						disabled={isSubmitting}
+					>
+						<SelectTrigger id="priority" className="w-full">
+							<SelectValue placeholder="Select priority" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="none">None</SelectItem>
+							{PRIORITY_OPTIONS.map(({ value, label }) => (
+								<SelectItem key={value} value={value}>
+									{label}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
 			</div>
 
 			<div className="rjsf-container">

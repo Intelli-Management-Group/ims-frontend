@@ -78,7 +78,7 @@ export interface FormSubmissionVersion {
 
   form_name: string;
 
-  content: Record<string, unknown>;
+  content: Record<string, unknown> | unknown[];
 
   version_number: number;
 
@@ -102,6 +102,7 @@ export interface FormSubmission {
   // API can return id or name depending on endpoint
   created_by?: string | number | null;
 
+  priority?: string;
   created_at: string;
   updated_at: string;
 }

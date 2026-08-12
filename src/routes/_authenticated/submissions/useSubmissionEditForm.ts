@@ -14,6 +14,7 @@ interface UseSubmissionEditFormArgs {
     formName: string;
     content: Record<string, unknown>;
     versionNumber: number;
+    priority?: string | null;
   }) => void;
 }
 
@@ -22,6 +23,9 @@ export function useSubmissionEditForm({ submission, onSave }: UseSubmissionEditF
 
   const [formName, setFormName] = useState(current.form_name);
   const [formNameError, setFormNameError] = useState(false);
+  const [priority, setPriority] = useState<string | null>(
+    submission.priority ?? null,
+  );
 
   // versionNumber is pinned to the version this form was opened against.
   // We rely on the parent remounting this component (via `key`) whenever
@@ -46,9 +50,17 @@ export function useSubmissionEditForm({ submission, onSave }: UseSubmissionEditF
         formName: formName.trim(),
         content: nextData as Record<string, unknown>,
         versionNumber,
+        priority,
       });
     }
   };
 
-  return { formName, formNameError, handleFormNameChange, handleSubmit };
+  return {
+    formName,
+    formNameError,
+    handleFormNameChange,
+    handleSubmit,
+    priority,
+    setPriority,
+  };
 }

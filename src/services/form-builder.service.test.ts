@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { formBuilderCollection } from '@/db-collections/form-builder.collections';
+import { formElementsList } from '@/constants/form-elements-list';
 import {
   DEFAULT_FORM_ELEMENTS,
   DEFAULT_FORM_SETTINGS,
@@ -62,6 +63,10 @@ describe('form-builder.service', () => {
     }>;
     expect(elements?.[0]?.fieldType).toBe('DateRangePicker');
     expect(elements?.[1]?.fieldType).toBe('TimePicker');
+  });
+
+  it('does not expose Priority in the builder palette', () => {
+    expect(formElementsList.some((element) => element.fieldType === 'Priority')).toBe(false);
   });
 
   it('resetFormElements clears elements', () => {

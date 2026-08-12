@@ -6,6 +6,7 @@ export const formSubmissionsApi = {
     page?: number;
     per_page?: number;
     form_template_id?: number;
+    priority?: string;
   }) => {
     const { data } = await apiClient.get<PaginatedResponse<FormSubmission>>(
       "/form-submissions",
@@ -28,6 +29,7 @@ export const formSubmissionsApi = {
     form_template_version_id: number;
     form_name: string;
     content: Record<string, unknown>;
+    priority?: string;
   }) => {
     const { data } = await apiClient.post<{ data: FormSubmission }>(
       "/form-submissions",
@@ -42,6 +44,7 @@ export const formSubmissionsApi = {
       form_name: string;
       content: Record<string, unknown>;
       version_number: number;
+      priority?: string;
     },
   ) => {
     const { data } = await apiClient.put<{ data: FormSubmission }>(

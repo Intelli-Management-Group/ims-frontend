@@ -211,67 +211,187 @@ describe("useFormFillPage", () => {
 		});
 
 		await waitFor(() => {
-			expect(formSubmissionsApi.createFormSubmission).toHaveBeenCalledWith({
-				form_template_id: 1,
-				form_template_version_id: 10,
-				form_name: "My Submission",
-				content: { foo: "bar" },
-			});
-		});
-
-		await waitFor(() => {
-			expect(toast.success).toHaveBeenCalledWith(
-				"Form submitted successfully",
-			);
-			expect(mockNavigate).toHaveBeenCalledWith({ to: "/forms" });
+		expect(formSubmissionsApi.createFormSubmission).toHaveBeenCalledWith({
+			form_template_id: 1,
+			form_template_version_id: 10,
+			form_name: "My Submission",
+			content: { foo: "bar" },
 		});
 	});
 
-	it("does not submit when formData is missing, even with a valid name", () => {
-		const { result } = renderHook(() => useFormFillPage("1"), {
-			wrapper: createWrapper(),
-		});
-
-		act(() => {
-			result.current.handleFormNameChange("My Submission");
-		});
-		act(() => {
-			result.current.handleSubmit({ formData: undefined } as any);
-		});
-
-		expect(formSubmissionsApi.createFormSubmission).not.toHaveBeenCalled();
-	});
-
-	it("shows an error toast when submission fails", async () => {
-		vi.mocked(formSubmissionsApi.createFormSubmission).mockRejectedValue(
-			new Error("nope"),
+	await waitFor(() => {
+		expect(toast.success).toHaveBeenCalledWith(
+			"Form submitted successfully",
 		);
-
-		const { result } = renderHook(() => useFormFillPage("1"), {
-			wrapper: createWrapper(),
-		});
-
-		act(() => {
-			result.current.handleFormNameChange("My Submission");
-		});
-		act(() => {
-			result.current.handleSubmit({ formData: { foo: "bar" } } as any);
-		});
-
-		await waitFor(() => {
-			expect(toast.error).toHaveBeenCalledWith("Failed to submit form");
-		});
-	});
-
-	it("goBack navigates to /forms", () => {
-		const { result } = renderHook(() => useFormFillPage("1"), {
-			wrapper: createWrapper(),
-		});
-
-		act(() => {
-			result.current.goBack();
-		});
-
 		expect(mockNavigate).toHaveBeenCalledWith({ to: "/forms" });
 	});
+});
+
+it("submits priority when provided in the form data", async () => {
+	vi.mocked(formTemplatesApi.getFormTemplate).mockResolvedValue(
+		sampleTemplate as any,
+	);
+	vi.mocked(formSubmissionsApi.createFormSubmission).mockResolvedValue(
+		{} as any,
+	);
+
+	const { result } = renderHook(() => useFormFillPage("1"), {
+		wrapper: createWrapper(),
+	});
+
+	await waitFor(() => {
+		expect(formTemplatesApi.getFormTemplate).toHaveBeenCalledWith(1);
+	});
+
+	act(() => {
+		result.current.handleFormNameChange("My Submission");
+	});
+
+	act(() => {
+		result.current.handleSubmit({
+			formData: { foo: "bar", priority: "high" },
+		} as any);
+	});
+
+	await waitFor(() => {
+		expect(formSubmissionsApi.createFormSubmission).toHaveBeenCalledWith({
+			form_template_id: 1,
+			form_template_version_id: 10,
+			form_name: "My Submission",
+			content: { foo: "bar" },
+			priority: "high",
+		});
+	});
+});
+
+it("does not include priority when the form field is blank", async () => {
+	vi.mocked(formTemplatesApi.getFormTemplate).mockResolvedValue(
+		sampleTemplate as any,
+	);
+	vi.mocked(formSubmissionsApi.createFormSubmission).mockResolvedValue(
+		{} as any,
+	);
+
+	const { result } = renderHook(() => useFormFillPage("1"), {
+		wrapper: createWrapper(),
+	});
+
+	await waitFor(() => {
+		expect(formTemplatesApi.getFormTemplate).toHaveBeenCalledWith(1);
+	});
+
+	act(() => {
+		result.current.handleFormNameChange("My Submission");
+	});
+
+	act(() => {
+		result.current.handleSubmit({
+			formData: { foo: "bar", priority: "" },
+		} as any);
+	});
+
+	await waitFor(() => {
+		expect(formSubmissionsApi.createFormSubmission).toHaveBeenCalledWith({
+			form_template_id: 1,
+			form_template_version_id: 10,
+			form_name: "My Submission",
+			content: { foo: "bar" },
+		});
+	});
+});
+
+it("detects a priority field with a custom name and sends it as priority", async () => {
+	vi.mocked(formTemplatesApi.getFormTemplate).mockResolvedValue(
+		{
+			...sampleTemplate,
+			json_schema: {
+				properties: {
+					priority_level: {
+						type: "string",
+						enum: ["low", "medium", "high", "critical"],
+					},
+				},
+			},
+		} as any,
+	);
+	vi.mocked(formSubmissionsApi.createFormSubmission).mockResolvedValue(
+		{} as any,
+	);
+
+	const { result } = renderHook(() => useFormFillPage("1"), {
+		wrapper: createWrapper(),
+	});
+
+	await waitFor(() => {
+		expect(formTemplatesApi.getFormTemplate).toHaveBeenCalledWith(1);
+	});
+
+	act(() => {
+		result.current.handleFormNameChange("My Submission");
+	});
+
+	act(() => {
+		result.current.handleSubmit({
+			formData: { foo: "bar", priority_level: "high" },
+		} as any);
+	});
+
+	await waitFor(() => {
+		expect(formSubmissionsApi.createFormSubmission).toHaveBeenCalledWith({
+			form_template_id: 1,
+			form_template_version_id: 10,
+			form_name: "My Submission",
+			content: { foo: "bar" },
+			priority: "high",
+		});
+	});
+});
+
+it("does not submit when formData is missing, even with a valid name", () => {
+	const { result } = renderHook(() => useFormFillPage("1"), {
+		wrapper: createWrapper(),
+	});
+
+	act(() => {
+		result.current.handleFormNameChange("My Submission");
+	});
+	act(() => {
+		result.current.handleSubmit({ formData: undefined } as any);
+	});
+
+	expect(formSubmissionsApi.createFormSubmission).not.toHaveBeenCalled();
+});
+
+it("shows an error toast when submission fails", async () => {
+	vi.mocked(formSubmissionsApi.createFormSubmission).mockRejectedValue(
+		new Error("nope"),
+	);
+
+	const { result } = renderHook(() => useFormFillPage("1"), {
+		wrapper: createWrapper(),
+	});
+
+	act(() => {
+		result.current.handleFormNameChange("My Submission");
+	});
+	act(() => {
+		result.current.handleSubmit({ formData: { foo: "bar" } } as any);
+	});
+
+	await waitFor(() => {
+		expect(toast.error).toHaveBeenCalledWith("Failed to submit form");
+	});
+});
+
+it("goBack navigates to /forms", () => {
+	const { result } = renderHook(() => useFormFillPage("1"), {
+		wrapper: createWrapper(),
+	});
+
+	act(() => {
+		result.current.goBack();
+	});
+
+	expect(mockNavigate).toHaveBeenCalledWith({ to: "/forms" });
+});
 });

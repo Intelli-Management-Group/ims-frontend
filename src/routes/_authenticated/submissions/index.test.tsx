@@ -107,17 +107,20 @@ function realColumns() {
   ];
 }
 
-function mockHook(overrides?: Partial<ReturnType<typeof useSubmissionsPage>>) {
+function mockHook(overrides: Partial<ReturnType<typeof useSubmissionsPage>> = {},) {
   vi.mocked(useSubmissionsPage).mockReturnValue({
     page: 1,
     setPage: vi.fn(),
     perPage: 10,
     data: undefined,
     isLoading: false,
+    priorityFilter: '',
+    setPriorityFilter: vi.fn(),
+    priorityOptions: [],
     columns: realColumns() as never,
     handlePerPageChange: vi.fn(),
     ...overrides,
-  });
+  } as ReturnType<typeof useSubmissionsPage>);
 }
 
 describe('SubmissionsPage', () => {
@@ -234,12 +237,22 @@ describe('SubmissionsPage', () => {
 
     renderWithRouter({ route: '/submissions', user: adminUser });
 
-    const combobox = await screen.findByRole('combobox');
-    await user.click(combobox);
-    await user.click(await screen.findByRole('option', { name: '20' }));
+    const perPageSelect = await screen.findByRole('combobox', {
+      name: 'Rows per page',
+    });
+
+    await user.click(perPageSelect);
+
+    await user.click(
+      await screen.findByRole('option', {
+        name: '20',
+      }),
+    );
 
     await waitFor(() => {
       expect(handlePerPageChange).toHaveBeenCalledWith(20);
     });
   });
+
+  
 });

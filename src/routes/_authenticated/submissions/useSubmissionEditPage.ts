@@ -57,15 +57,18 @@ export function useSubmissionEditPage(submissionId: string) {
       formName,
       content,
       versionNumber,
+      priority,
     }: {
       formName: string;
       content: Record<string, unknown>;
       versionNumber: number;
+      priority?: string | null;
     }) =>
       formSubmissionsApi.updateFormSubmission(numericId, {
         form_name: formName,
         content,
         version_number: versionNumber,
+        ...(priority != null ? { priority } : {}),
       }),
     onSuccess: () => {
       toast.success('Submission updated successfully');

@@ -7,6 +7,28 @@ import { Button } from '@/components/ui/button';
 import { Eye, Pencil } from 'lucide-react';
 import type { FormSubmission } from '@/types/api';
 
+const PRIORITY_LABELS: Record<string, string> = {
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+  critical: 'Critical',
+};
+
+const PRIORITY_OPTIONS = [
+  { value: 'all', label: 'All priorities' },
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'critical', label: 'Critical' },
+];
+
+const PRIORITY_BADGE_STYLES: Record<string, string> = {
+  low: 'bg-sky-100 text-sky-800 ring-sky-200 dark:bg-sky-950 dark:text-sky-200 dark:ring-sky-800',
+  medium: 'bg-amber-100 text-amber-800 ring-amber-200 dark:bg-amber-950 dark:text-amber-200 dark:ring-amber-800',
+  high: 'bg-orange-100 text-orange-800 ring-orange-200 dark:bg-orange-950 dark:text-orange-200 dark:ring-orange-800',
+  critical: 'bg-red-100 text-red-800 ring-red-200 dark:bg-red-950 dark:text-red-200 dark:ring-red-800',
+};
+
 function formatDate(iso: string | null | undefined): string {
   if (!iso) return '—';
   const date = new Date(iso);
@@ -24,18 +46,25 @@ function formatDate(iso: string | null | undefined): string {
 export function useSubmissionsPage() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
+  const [priorityFilter, setPriorityFilter] = useState('all');
 
   const { data, isLoading } = useQuery({
-    queryKey: ['form-submissions', page, perPage],
+    queryKey: ['form-submissions', page, perPage, priorityFilter],
     queryFn: () =>
       formSubmissionsApi.getFormSubmissions({
         page,
         per_page: perPage,
+        ...(priorityFilter !== 'all' ? { priority: priorityFilter } : {}),
       }),
   });
 
   const handlePerPageChange = useCallback((val: number) => {
     setPerPage(val);
+    setPage(1);
+  }, []);
+
+  const handlePriorityFilterChange = useCallback((value: string) => {
+    setPriorityFilter(value);
     setPage(1);
   }, []);
 
@@ -60,6 +89,26 @@ export function useSubmissionsPage() {
             v{row.original.current_version?.version_number ?? '—'}
           </span>
         ),
+      },
+      {
+        id: 'priority',
+        header: 'Priority',
+        cell: ({ row }) => {
+          const value = row.original.priority?.toLowerCase();
+          const label = value ? PRIORITY_LABELS[value] ?? value : '—';
+
+          if (!value) {
+            return <span className="text-muted-foreground">—</span>;
+          }
+
+          return (
+            <span
+              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${PRIORITY_BADGE_STYLES[value] ?? 'bg-muted text-muted-foreground ring-muted-foreground/20'}`}
+            >
+              {label}
+            </span>
+          );
+        },
       },
       {
         id: 'submitted_by',
@@ -111,5 +160,16 @@ export function useSubmissionsPage() {
     [],
   );
 
-  return { page, setPage, perPage, data, isLoading, columns, handlePerPageChange };
+  return {
+    page,
+    setPage,
+    perPage,
+    data,
+    isLoading,
+    columns,
+    handlePerPageChange,
+    priorityFilter,
+    setPriorityFilter: handlePriorityFilterChange,
+    priorityOptions: PRIORITY_OPTIONS,
+  };
 }

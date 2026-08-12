@@ -2,13 +2,17 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import Form from '@rjsf/shadcn';
 import validator from '@rjsf/validator-ajv8';
 import type { RJSFSchema, UiSchema } from '@rjsf/utils';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useSubmissionEditPage } from './useSubmissionEditPage';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { PRIORITY_OPTIONS } from '@/constants/priority-options';
+
 import { useSubmissionEditForm, type SubmissionWithTemplate } from './useSubmissionEditForm';
+import { useSubmissionEditPage } from './useSubmissionEditPage';
 
 export const Route = createFileRoute('/_authenticated/submissions/$submissionId/edit')({
   component: SubmissionEditPage,
@@ -24,11 +28,20 @@ function SubmissionEditForm({
     formName: string;
     content: Record<string, unknown>;
     versionNumber: number;
+    priority?: string | null;
   }) => void;
   isSubmitting: boolean;
 }) {
   const navigate = useNavigate();
-  const { formName, formNameError, handleFormNameChange, handleSubmit } = useSubmissionEditForm({
+
+  const {
+    formName,
+    formNameError,
+    handleFormNameChange,
+    handleSubmit,
+    priority,
+    setPriority,
+  } = useSubmissionEditForm({
     submission,
     onSave,
   });
@@ -37,8 +50,13 @@ function SubmissionEditForm({
   const schema = template.json_schema as RJSFSchema;
   const uiSchema = template.ui_schema as UiSchema;
 
+  const formData = Array.isArray(submission.current_version.content)
+    ? {}
+    : submission.current_version.content;
+
   return (
     <div className="max-w-2xl space-y-6">
+      {/* Header */}
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <Button
@@ -49,36 +67,93 @@ function SubmissionEditForm({
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-2xl font-bold tracking-tight">{template.name}</h2>
+
+          <h2 className="text-2xl font-bold tracking-tight">
+            {template.name}
+          </h2>
         </div>
+
         <p className="text-muted-foreground text-sm">
           Update the form below and save your changes.
         </p>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="editFormName" className="gap-0.5">
-          Form Name <span className="text-destructive">*</span>
-        </Label>
-        <Input
-          id="editFormName"
-          value={formName}
-          onChange={(e) => handleFormNameChange(e.target.value)}
-          placeholder="Enter form name"
-          disabled={isSubmitting}
-          aria-invalid={formNameError}
-          required
-          form="edit-submission-form"
-        />
-        {formNameError && <p className="text-destructive text-sm">Form name is required.</p>}
+      {/* Form Name + Priority */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {/* Form Name */}
+        <div className="space-y-2">
+          <Label htmlFor="form-name">
+            Form Name
+          </Label>
+
+          <Input
+            id="form-name"
+            value={formName}
+            onChange={(event) =>
+              handleFormNameChange(event.target.value)
+            }
+            disabled={isSubmitting}
+            aria-invalid={formNameError}
+            aria-describedby={
+              formNameError ? 'form-name-error' : undefined
+            }
+          />
+
+          {formNameError && (
+            <p
+              id="form-name-error"
+              className="text-destructive text-sm"
+            >
+              Please enter a form name
+            </p>
+          )}
+        </div>
+
+        {/* Priority */}
+        <div className="space-y-2">
+          <Label htmlFor="priority">
+            Priority
+          </Label>
+
+          <Select
+            value={priority ?? 'none'}
+            onValueChange={(value) =>
+              setPriority(value === 'none' ? null : value)
+            }
+            disabled={isSubmitting}
+          >
+            <SelectTrigger
+              id="priority"
+              className="w-full"
+            >
+              <SelectValue placeholder="Select priority" />
+            </SelectTrigger>
+
+            <SelectContent>
+              <SelectItem value="none">
+                None
+              </SelectItem>
+
+              {PRIORITY_OPTIONS.map(({ value, label }) => (
+                <SelectItem
+                  key={value}
+                  value={value}
+                >
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
+      {/* Dynamic RJSF Form */}
       <div className="rjsf-container">
         <Form
           id="edit-submission-form"
           schema={schema}
           uiSchema={uiSchema}
-          formData={submission.current_version.content}
+          formData={formData}
           validator={validator}
           onSubmit={handleSubmit}
           disabled={isSubmitting}
@@ -86,7 +161,10 @@ function SubmissionEditForm({
           focusOnFirstError
         >
           <div className="pt-2">
-            <Button type="submit" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? 'Saving...' : 'Save changes'}
             </Button>
           </div>
@@ -98,22 +176,33 @@ function SubmissionEditForm({
 
 function SubmissionEditPage() {
   const { submissionId } = Route.useParams();
-  const { submission, isLoading, isSubmitting, updateSubmission } =
-    useSubmissionEditPage(submissionId);
+
+  const {
+    submission,
+    isLoading,
+    isSubmitting,
+    updateSubmission,
+  } = useSubmissionEditPage(submissionId);
 
   if (isLoading) {
     return (
       <div className="max-w-2xl space-y-6">
         <Skeleton className="h-8 w-64" />
+
         <Skeleton className="h-4 w-96" />
+
         <div className="space-y-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="space-y-2">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div
+              key={index}
+              className="space-y-2"
+            >
               <Skeleton className="h-4 w-32" />
               <Skeleton className="h-10 w-full" />
             </div>
           ))}
         </div>
+
         <Skeleton className="h-10 w-32" />
       </div>
     );

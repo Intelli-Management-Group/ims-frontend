@@ -170,6 +170,24 @@ describe('useSubmissionsPage', () => {
     });
   });
 
+  it('includes the selected priority in the submissions query when filtering', async () => {
+    const { result } = renderHook(() => useSubmissionsPage(), { wrapper: createWrapper() });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => {
+      result.current.setPriorityFilter('high');
+    });
+
+    await waitFor(() => {
+      expect(formSubmissionsApi.getFormSubmissions).toHaveBeenCalledWith({
+        page: 1,
+        per_page: 10,
+        priority: 'high',
+      });
+    });
+  });
+
   describe('columns', () => {
     it('prefers the current version form name for the "template" column', async () => {
       const { result } = renderHook(() => useSubmissionsPage(), { wrapper: createWrapper() });
@@ -230,6 +248,20 @@ describe('useSubmissionsPage', () => {
       );
 
       expect(await screen.findByText('John Doe')).toBeInTheDocument();
+    });
+
+    it('renders the priority label for a submission', async () => {
+      const { result } = renderHook(() => useSubmissionsPage(), {
+        wrapper: createWrapper(),
+      });
+
+      renderCell(
+        result.current.columns,
+        'priority',
+        buildMockSubmission({ priority: 'high' }),
+      );
+
+      expect(await screen.findByText('High')).toBeInTheDocument();
     });
     
     it('renders an em dash when there is no submitter', async () => {

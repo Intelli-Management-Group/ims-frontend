@@ -40,6 +40,10 @@ function SubmissionDetailPage() {
     return null;
   }
 
+  const formData = Array.isArray(submission.current_version.content)
+    ? {}
+    : submission.current_version.content;
+
   return (
     <div className="max-w-2xl space-y-6">
       <div className="space-y-1">
@@ -62,7 +66,7 @@ function SubmissionDetailPage() {
         <Form
           schema={submission.template.json_schema as RJSFSchema}
           uiSchema={submission.template.ui_schema as UiSchema}
-          formData={submission.current_version.content}
+          formData={formData}
           validator={validator}
           disabled
           readonly
