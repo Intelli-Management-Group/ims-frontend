@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -19,15 +20,18 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ThemeSelector } from '@/components/theme-selector';
 import { Link, useLocation } from '@tanstack/react-router';
+import { useBreadcrumb } from '@/hooks/use-breadcrumb';
+import { buildBreadcrumbs } from './app-header.utils';
 
 export function AppHeader() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const { overrides } = useBreadcrumb();
 
-  const pathSegments = location.pathname.split('/').filter(Boolean);
-  
+  const breadcrumbs = buildBreadcrumbs(location.pathname, overrides);
+
   return (
-    <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 sticky top-0 bg-background">
+    <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 sticky top-0 z-30 bg-background">
       <SidebarTrigger className="-ml-1" />
       <Breadcrumb className="flex-1">
         <BreadcrumbList>
@@ -36,29 +40,23 @@ export function AppHeader() {
               <Link to="/">Dashboard</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
-          {pathSegments.map((segment, index) => {
-            const path = `/${pathSegments.slice(0, index + 1).join('/')}`;
-            const isLast = index === pathSegments.length - 1;
-            const label = segment.charAt(0).toUpperCase() + segment.slice(1);
-
-            return (
-              <React.Fragment key={path}>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  {isLast ? (
-                    <BreadcrumbPage>{label}</BreadcrumbPage>
-                  ) : (
-                    <BreadcrumbLink asChild>
-                      <Link to={path}>{label}</Link>
-                    </BreadcrumbLink>
-                  )}
-                </BreadcrumbItem>
-              </React.Fragment>
-            );
-          })}
+          {breadcrumbs.map((crumb) => (
+            <React.Fragment key={crumb.path}>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                {crumb.isPage ? (
+                  <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink asChild>
+                    <Link to={crumb.path}>{crumb.label}</Link>
+                  </BreadcrumbLink>
+                )}
+              </BreadcrumbItem>
+            </React.Fragment>
+          ))}
         </BreadcrumbList>
       </Breadcrumb>
-      
+
       <div className="flex items-center gap-2">
         <ThemeSelector />
         <DropdownMenu>
@@ -89,5 +87,3 @@ export function AppHeader() {
     </header>
   );
 }
-
-import React from 'react';

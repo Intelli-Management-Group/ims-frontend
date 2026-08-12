@@ -1,10 +1,24 @@
 import { screen, userEvent, waitFor, within } from '@/test/test-utils';
 import { renderWithRouter } from '@/test/test-utils';
 import { rolesApi } from '@/api/roles';
+import { useAuth } from '@/hooks/use-auth';
+import { toast } from 'sonner';
 import type { AuthUser } from '@/types/api';
 
 vi.mock('@/api/roles');
+vi.mock('@/hooks/use-auth', () => ({ useAuth: vi.fn() }));
 vi.mock('@/hooks/use-debounce', () => ({ useDebounce: (value: unknown) => value }));
+vi.mock('sonner', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('sonner')>();
+  return {
+    ...actual,
+    toast: {
+      ...actual.toast,
+      success: vi.fn(),
+      error: vi.fn(),
+    },
+  };
+});
 
 const adminUser: AuthUser = {
   id: 1,
@@ -14,6 +28,14 @@ const adminUser: AuthUser = {
   created_at: '',
   updated_at: '',
   role: { id: 1, name: 'admin', is_active: true, created_at: '', updated_at: '' },
+};
+
+const nonAdminUser: AuthUser = {
+  ...adminUser,
+  id: 2,
+  name: 'Viewer',
+  email: 'viewer@example.com',
+  role: { id: 2, name: 'user', is_active: true, created_at: '', updated_at: '' },
 };
 
 const mockRolesList = {
@@ -26,8 +48,20 @@ const mockRolesList = {
 };
 
 describe('Roles page', () => {
+  const mockedUseAuth = vi.mocked(useAuth);
+
   beforeEach(() => {
+    mockedUseAuth.mockReturnValue({
+      user: adminUser,
+      isLoading: false,
+      isAuthenticated: true,
+      isAdmin: true,
+      login: vi.fn(),
+      logout: vi.fn(),
+    } as ReturnType<typeof useAuth>);
     vi.mocked(rolesApi.getRoles).mockResolvedValue(mockRolesList);
+    vi.mocked(toast.success).mockClear();
+    vi.mocked(toast.error).mockClear();
   });
 
   it('renders page title and description when authenticated', async () => {
@@ -151,6 +185,7 @@ describe('Roles page', () => {
     });
 
     const nameInput = screen.getByPlaceholderText('Administrator');
+    expect(nameInput).toHaveValue('admin');
     await user.clear(nameInput);
     await user.type(nameInput, 'admin-updated');
 
@@ -203,5 +238,66 @@ describe('Roles page', () => {
         is_active: false,
       });
     });
+  });
+
+  it('shows an error toast when role creation fails', async () => {
+    vi.mocked(rolesApi.createRole).mockRejectedValue({
+      response: { data: { message: 'Role name already taken' } },
+    });
+
+    const user = userEvent.setup();
+    renderWithRouter({ route: '/roles', user: adminUser });
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Add Role/i })).toBeInTheDocument();
+    });
+    await user.click(screen.getByRole('button', { name: /Add Role/i }));
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('Administrator')).toBeInTheDocument();
+    });
+    await user.type(screen.getByPlaceholderText('Administrator'), 'duplicate-role');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Role name already taken');
+    });
+    expect(screen.getByRole('dialog', { name: /Add Role/i })).toBeInTheDocument();
+  });
+
+  it('non-admin sees Add Role disabled and cannot open the dialog', async () => {
+    mockedUseAuth.mockReturnValue({
+      user: nonAdminUser,
+      isLoading: false,
+      isAuthenticated: true,
+      isAdmin: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+    } as ReturnType<typeof useAuth>);
+
+    const user = userEvent.setup();
+    renderWithRouter({ route: '/roles', user: nonAdminUser });
+
+    const addRoleButton = await screen.findByRole('button', { name: /Add Role/i });
+    expect(addRoleButton).toBeDisabled();
+
+    await user.click(addRoleButton);
+    expect(screen.queryByRole('dialog', { name: /Add Role/i })).not.toBeInTheDocument();
+  });
+
+  it('disables the edit action for non-admin users', async () => {
+    mockedUseAuth.mockReturnValue({
+      user: nonAdminUser,
+      isLoading: false,
+      isAuthenticated: true,
+      isAdmin: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+    } as ReturnType<typeof useAuth>);
+
+    renderWithRouter({ route: '/roles', user: nonAdminUser });
+
+    const nameCell = await screen.findByText('admin');
+    const row = nameCell.closest('tr') as HTMLElement;
+    const editButton = within(row).getAllByRole('button')[0];
+    expect(editButton).toBeDisabled();
   });
 });
