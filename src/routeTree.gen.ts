@@ -14,9 +14,17 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedTeamsIndexRouteImport } from './routes/_authenticated/teams/index'
+import { Route as AuthenticatedSubmissionsIndexRouteImport } from './routes/_authenticated/submissions/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedRolesIndexRouteImport } from './routes/_authenticated/roles/index'
+import { Route as AuthenticatedFormsIndexRouteImport } from './routes/_authenticated/forms/index'
+import { Route as AuthenticatedFormTemplatesIndexRouteImport } from './routes/_authenticated/form-templates/index'
+import { Route as AuthenticatedFormBuilderIndexRouteImport } from './routes/_authenticated/form-builder/index'
 import { Route as AuthenticatedDepartmentsIndexRouteImport } from './routes/_authenticated/departments/index'
+import { Route as AuthenticatedSubmissionsSubmissionIdRouteImport } from './routes/_authenticated/submissions/$submissionId'
+import { Route as AuthenticatedFormsTemplateIdRouteImport } from './routes/_authenticated/forms/$templateId'
+import { Route as AuthenticatedFormBuilderTemplateIdRouteImport } from './routes/_authenticated/form-builder/$templateId'
+import { Route as AuthenticatedSubmissionsSubmissionIdEditRouteImport } from './routes/_authenticated/submissions/$submissionId.edit'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -42,6 +50,12 @@ const AuthenticatedTeamsIndexRoute = AuthenticatedTeamsIndexRouteImport.update({
   path: '/teams/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedSubmissionsIndexRoute =
+  AuthenticatedSubmissionsIndexRouteImport.update({
+    id: '/submissions/',
+    path: '/submissions/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedSettingsIndexRoute =
   AuthenticatedSettingsIndexRouteImport.update({
     id: '/settings/',
@@ -53,71 +67,160 @@ const AuthenticatedRolesIndexRoute = AuthenticatedRolesIndexRouteImport.update({
   path: '/roles/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedFormsIndexRoute = AuthenticatedFormsIndexRouteImport.update({
+  id: '/forms/',
+  path: '/forms/',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedFormTemplatesIndexRoute =
+  AuthenticatedFormTemplatesIndexRouteImport.update({
+    id: '/form-templates/',
+    path: '/form-templates/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedFormBuilderIndexRoute =
+  AuthenticatedFormBuilderIndexRouteImport.update({
+    id: '/form-builder/',
+    path: '/form-builder/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedDepartmentsIndexRoute =
   AuthenticatedDepartmentsIndexRouteImport.update({
     id: '/departments/',
     path: '/departments/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedSubmissionsSubmissionIdRoute =
+  AuthenticatedSubmissionsSubmissionIdRouteImport.update({
+    id: '/submissions/$submissionId',
+    path: '/submissions/$submissionId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedFormsTemplateIdRoute =
+  AuthenticatedFormsTemplateIdRouteImport.update({
+    id: '/forms/$templateId',
+    path: '/forms/$templateId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedFormBuilderTemplateIdRoute =
+  AuthenticatedFormBuilderTemplateIdRouteImport.update({
+    id: '/form-builder/$templateId',
+    path: '/form-builder/$templateId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedSubmissionsSubmissionIdEditRoute =
+  AuthenticatedSubmissionsSubmissionIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => AuthenticatedSubmissionsSubmissionIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
+  '/form-builder/$templateId': typeof AuthenticatedFormBuilderTemplateIdRoute
+  '/forms/$templateId': typeof AuthenticatedFormsTemplateIdRoute
+  '/submissions/$submissionId': typeof AuthenticatedSubmissionsSubmissionIdRouteWithChildren
   '/departments/': typeof AuthenticatedDepartmentsIndexRoute
+  '/form-builder/': typeof AuthenticatedFormBuilderIndexRoute
+  '/form-templates/': typeof AuthenticatedFormTemplatesIndexRoute
+  '/forms/': typeof AuthenticatedFormsIndexRoute
   '/roles/': typeof AuthenticatedRolesIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/submissions/': typeof AuthenticatedSubmissionsIndexRoute
   '/teams/': typeof AuthenticatedTeamsIndexRoute
   '/users/': typeof AuthenticatedUsersIndexRoute
+  '/submissions/$submissionId/edit': typeof AuthenticatedSubmissionsSubmissionIdEditRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/': typeof AuthenticatedIndexRoute
+  '/form-builder/$templateId': typeof AuthenticatedFormBuilderTemplateIdRoute
+  '/forms/$templateId': typeof AuthenticatedFormsTemplateIdRoute
+  '/submissions/$submissionId': typeof AuthenticatedSubmissionsSubmissionIdRouteWithChildren
   '/departments': typeof AuthenticatedDepartmentsIndexRoute
+  '/form-builder': typeof AuthenticatedFormBuilderIndexRoute
+  '/form-templates': typeof AuthenticatedFormTemplatesIndexRoute
+  '/forms': typeof AuthenticatedFormsIndexRoute
   '/roles': typeof AuthenticatedRolesIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
+  '/submissions': typeof AuthenticatedSubmissionsIndexRoute
   '/teams': typeof AuthenticatedTeamsIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
+  '/submissions/$submissionId/edit': typeof AuthenticatedSubmissionsSubmissionIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/login': typeof LoginRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/form-builder/$templateId': typeof AuthenticatedFormBuilderTemplateIdRoute
+  '/_authenticated/forms/$templateId': typeof AuthenticatedFormsTemplateIdRoute
+  '/_authenticated/submissions/$submissionId': typeof AuthenticatedSubmissionsSubmissionIdRouteWithChildren
   '/_authenticated/departments/': typeof AuthenticatedDepartmentsIndexRoute
+  '/_authenticated/form-builder/': typeof AuthenticatedFormBuilderIndexRoute
+  '/_authenticated/form-templates/': typeof AuthenticatedFormTemplatesIndexRoute
+  '/_authenticated/forms/': typeof AuthenticatedFormsIndexRoute
   '/_authenticated/roles/': typeof AuthenticatedRolesIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/_authenticated/submissions/': typeof AuthenticatedSubmissionsIndexRoute
   '/_authenticated/teams/': typeof AuthenticatedTeamsIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
+  '/_authenticated/submissions/$submissionId/edit': typeof AuthenticatedSubmissionsSubmissionIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/login'
+    | '/form-builder/$templateId'
+    | '/forms/$templateId'
+    | '/submissions/$submissionId'
     | '/departments/'
+    | '/form-builder/'
+    | '/form-templates/'
+    | '/forms/'
     | '/roles/'
     | '/settings/'
+    | '/submissions/'
     | '/teams/'
     | '/users/'
+    | '/submissions/$submissionId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
     | '/'
+    | '/form-builder/$templateId'
+    | '/forms/$templateId'
+    | '/submissions/$submissionId'
     | '/departments'
+    | '/form-builder'
+    | '/form-templates'
+    | '/forms'
     | '/roles'
     | '/settings'
+    | '/submissions'
     | '/teams'
     | '/users'
+    | '/submissions/$submissionId/edit'
   id:
     | '__root__'
     | '/_authenticated'
     | '/login'
     | '/_authenticated/'
+    | '/_authenticated/form-builder/$templateId'
+    | '/_authenticated/forms/$templateId'
+    | '/_authenticated/submissions/$submissionId'
     | '/_authenticated/departments/'
+    | '/_authenticated/form-builder/'
+    | '/_authenticated/form-templates/'
+    | '/_authenticated/forms/'
     | '/_authenticated/roles/'
     | '/_authenticated/settings/'
+    | '/_authenticated/submissions/'
     | '/_authenticated/teams/'
     | '/_authenticated/users/'
+    | '/_authenticated/submissions/$submissionId/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -162,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTeamsIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/submissions/': {
+      id: '/_authenticated/submissions/'
+      path: '/submissions'
+      fullPath: '/submissions/'
+      preLoaderRoute: typeof AuthenticatedSubmissionsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/settings/': {
       id: '/_authenticated/settings/'
       path: '/settings'
@@ -176,6 +286,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRolesIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/forms/': {
+      id: '/_authenticated/forms/'
+      path: '/forms'
+      fullPath: '/forms/'
+      preLoaderRoute: typeof AuthenticatedFormsIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/form-templates/': {
+      id: '/_authenticated/form-templates/'
+      path: '/form-templates'
+      fullPath: '/form-templates/'
+      preLoaderRoute: typeof AuthenticatedFormTemplatesIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/form-builder/': {
+      id: '/_authenticated/form-builder/'
+      path: '/form-builder'
+      fullPath: '/form-builder/'
+      preLoaderRoute: typeof AuthenticatedFormBuilderIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/departments/': {
       id: '/_authenticated/departments/'
       path: '/departments'
@@ -183,23 +314,82 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDepartmentsIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/submissions/$submissionId': {
+      id: '/_authenticated/submissions/$submissionId'
+      path: '/submissions/$submissionId'
+      fullPath: '/submissions/$submissionId'
+      preLoaderRoute: typeof AuthenticatedSubmissionsSubmissionIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/forms/$templateId': {
+      id: '/_authenticated/forms/$templateId'
+      path: '/forms/$templateId'
+      fullPath: '/forms/$templateId'
+      preLoaderRoute: typeof AuthenticatedFormsTemplateIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/form-builder/$templateId': {
+      id: '/_authenticated/form-builder/$templateId'
+      path: '/form-builder/$templateId'
+      fullPath: '/form-builder/$templateId'
+      preLoaderRoute: typeof AuthenticatedFormBuilderTemplateIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/submissions/$submissionId/edit': {
+      id: '/_authenticated/submissions/$submissionId/edit'
+      path: '/edit'
+      fullPath: '/submissions/$submissionId/edit'
+      preLoaderRoute: typeof AuthenticatedSubmissionsSubmissionIdEditRouteImport
+      parentRoute: typeof AuthenticatedSubmissionsSubmissionIdRoute
+    }
   }
 }
 
+interface AuthenticatedSubmissionsSubmissionIdRouteChildren {
+  AuthenticatedSubmissionsSubmissionIdEditRoute: typeof AuthenticatedSubmissionsSubmissionIdEditRoute
+}
+
+const AuthenticatedSubmissionsSubmissionIdRouteChildren: AuthenticatedSubmissionsSubmissionIdRouteChildren =
+  {
+    AuthenticatedSubmissionsSubmissionIdEditRoute:
+      AuthenticatedSubmissionsSubmissionIdEditRoute,
+  }
+
+const AuthenticatedSubmissionsSubmissionIdRouteWithChildren =
+  AuthenticatedSubmissionsSubmissionIdRoute._addFileChildren(
+    AuthenticatedSubmissionsSubmissionIdRouteChildren,
+  )
+
 interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedFormBuilderTemplateIdRoute: typeof AuthenticatedFormBuilderTemplateIdRoute
+  AuthenticatedFormsTemplateIdRoute: typeof AuthenticatedFormsTemplateIdRoute
+  AuthenticatedSubmissionsSubmissionIdRoute: typeof AuthenticatedSubmissionsSubmissionIdRouteWithChildren
   AuthenticatedDepartmentsIndexRoute: typeof AuthenticatedDepartmentsIndexRoute
+  AuthenticatedFormBuilderIndexRoute: typeof AuthenticatedFormBuilderIndexRoute
+  AuthenticatedFormTemplatesIndexRoute: typeof AuthenticatedFormTemplatesIndexRoute
+  AuthenticatedFormsIndexRoute: typeof AuthenticatedFormsIndexRoute
   AuthenticatedRolesIndexRoute: typeof AuthenticatedRolesIndexRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
+  AuthenticatedSubmissionsIndexRoute: typeof AuthenticatedSubmissionsIndexRoute
   AuthenticatedTeamsIndexRoute: typeof AuthenticatedTeamsIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedFormBuilderTemplateIdRoute:
+    AuthenticatedFormBuilderTemplateIdRoute,
+  AuthenticatedFormsTemplateIdRoute: AuthenticatedFormsTemplateIdRoute,
+  AuthenticatedSubmissionsSubmissionIdRoute:
+    AuthenticatedSubmissionsSubmissionIdRouteWithChildren,
   AuthenticatedDepartmentsIndexRoute: AuthenticatedDepartmentsIndexRoute,
+  AuthenticatedFormBuilderIndexRoute: AuthenticatedFormBuilderIndexRoute,
+  AuthenticatedFormTemplatesIndexRoute: AuthenticatedFormTemplatesIndexRoute,
+  AuthenticatedFormsIndexRoute: AuthenticatedFormsIndexRoute,
   AuthenticatedRolesIndexRoute: AuthenticatedRolesIndexRoute,
   AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
+  AuthenticatedSubmissionsIndexRoute: AuthenticatedSubmissionsIndexRoute,
   AuthenticatedTeamsIndexRoute: AuthenticatedTeamsIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
 }

@@ -13,6 +13,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  PAGE_SIZE_OPTIONS,
+  getEntryRange,
+  getVisiblePageNumbers,
+  createPreviousPageHandler,
+  createNextPageHandler,
+  createPageNumberHandler,
+} from './data-table-pagination.utils';
 
 interface DataTablePaginationProps {
   currentPage: number;
@@ -31,8 +39,8 @@ export function DataTablePagination({
   onPerPageChange,
   total,
 }: DataTablePaginationProps) {
-  const from = (currentPage - 1) * perPage + 1;
-  const to = Math.min(currentPage * perPage, total);
+  const { from, to } = getEntryRange(currentPage, perPage, total);
+  const visiblePages = getVisiblePageNumbers(currentPage, lastPage);
 
   return (
     <div className="flex flex-col items-center justify-between gap-4 px-2 py-4 sm:flex-row">
@@ -46,7 +54,7 @@ export function DataTablePagination({
             <SelectValue placeholder={perPage} />
           </SelectTrigger>
           <SelectContent side="top">
-            {[10, 20, 30, 40, 50].map((pageSize) => (
+            {PAGE_SIZE_OPTIONS.map((pageSize) => (
               <SelectItem key={pageSize} value={pageSize.toString()}>
                 {pageSize}
               </SelectItem>
@@ -54,55 +62,37 @@ export function DataTablePagination({
           </SelectContent>
         </Select>
         <span>
-          entries. Showing {total === 0 ? 0 : from} to {to} of {total}
+          entries. Showing {from} to {to} of {total}
         </span>
       </div>
-      
+
       <Pagination>
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
               href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                if (currentPage > 1) onPageChange(currentPage - 1);
-              }}
+              onClick={createPreviousPageHandler(currentPage, onPageChange)}
               className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
             />
           </PaginationItem>
-          
-          {Array.from({ length: Math.min(5, lastPage) }, (_, i) => {
-            let pageNum = currentPage;
-            if (currentPage <= 3) pageNum = i + 1;
-            else if (currentPage >= lastPage - 2) pageNum = lastPage - 4 + i;
-            else pageNum = currentPage - 2 + i;
-            
-            if (pageNum < 1 || pageNum > lastPage) return null;
 
-            return (
-              <PaginationItem key={pageNum}>
-                <PaginationLink
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onPageChange(pageNum);
-                  }}
-                  isActive={currentPage === pageNum}
-                  className="cursor-pointer"
-                >
-                  {pageNum}
-                </PaginationLink>
-              </PaginationItem>
-            );
-          })}
+          {visiblePages.map((pageNum) => (
+            <PaginationItem key={pageNum}>
+              <PaginationLink
+                href="#"
+                onClick={createPageNumberHandler(pageNum, onPageChange)}
+                isActive={currentPage === pageNum}
+                className="cursor-pointer"
+              >
+                {pageNum}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
 
           <PaginationItem>
             <PaginationNext
               href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                if (currentPage < lastPage) onPageChange(currentPage + 1);
-              }}
+              onClick={createNextPageHandler(currentPage, lastPage, onPageChange)}
               className={currentPage === lastPage ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
             />
           </PaginationItem>
