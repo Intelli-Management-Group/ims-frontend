@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { getStatusStyle } from './status-badge.utils';
 
 interface StatusBadgeProps {
   isActive: boolean;
@@ -7,16 +8,11 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ isActive, className }: StatusBadgeProps) {
+  const { variant, classes, label } = getStatusStyle(isActive);
+
   return (
-    <Badge
-      variant={isActive ? 'default' : 'secondary'}
-      className={cn(
-        'font-medium',
-        isActive ? 'bg-green-100 text-green-800 hover:bg-green-200' : 'bg-red-100 text-red-800 hover:bg-red-200',
-        className
-      )}
-    >
-      {isActive ? 'Active' : 'Inactive'}
+    <Badge variant={variant} className={cn('font-medium', classes, className)}>
+      {label}
     </Badge>
   );
 }

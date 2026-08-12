@@ -46,6 +46,22 @@ describe('Login page', () => {
     });
   });
 
+  it('does not call authApi.login when validation fails', async () => {
+    const user = userEvent.setup();
+    renderWithRouter({ route: '/login' });
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Login' })).toBeInTheDocument();
+    });
+    await user.type(screen.getByPlaceholderText('admin@example.com'), 'invalid');
+    await user.type(screen.getByPlaceholderText('••••••••'), 'password123');
+    await user.click(screen.getByRole('button', { name: 'Login' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Invalid email address')).toBeInTheDocument();
+    });
+    expect(authApi.login).not.toHaveBeenCalled();
+  });
+
   it('calls authApi.login and navigates on success', async () => {
     vi.mocked(authApi.login).mockResolvedValue({ access_token: 'token', token_type: 'bearer', expires_in: 3600 });
     const user = userEvent.setup();
