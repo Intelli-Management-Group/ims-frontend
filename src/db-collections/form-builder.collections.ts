@@ -107,6 +107,11 @@ const SelectSchema = v.object({
 	placeholder: v.string(),
 });
 
+const PrioritySchema = v.object({
+  ...SharedFormPropsSchema.entries,
+  fieldType: v.literal("Priority"),
+});
+
 const MultiSelectSchema = v.object({
 	...SharedFormPropsSchema.entries,
 	fieldType: v.literal("MultiSelect"),
@@ -197,6 +202,7 @@ const FormElementSchema: v.GenericSchema<any> = v.lazy(() =>
 		SwitchSchema,
 		SliderSchema,
 		SelectSchema,
+		PrioritySchema,
 		MultiSelectSchema,
 		DatePickerSchema,
 		DateRangePickerSchema,

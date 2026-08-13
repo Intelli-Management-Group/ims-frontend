@@ -4,6 +4,7 @@ import type {
 	FormArray,
 	FormElementOrList,
 } from "@/db-collections/form-builder.collections";
+import { PRIORITY_VALUES } from "@/constants/priority-options";
 
 type JsonProp = Record<string, unknown>;
 type RjsfUiSchema = Record<string, unknown>;
@@ -231,6 +232,21 @@ function buildFormElement(
 		}
 		// Array items = object → handled as FormArray at call site; return null here
 		return null;
+	}
+
+	// ---- Priority: string enum matching the fixed low/medium/high/critical set ----
+	if (type === "string" && Array.isArray(prop.enum)) {
+		const enumValues = (prop.enum as unknown[]).map(asString);
+		const isPriorityEnum =
+			enumValues.length === PRIORITY_VALUES.length &&
+			PRIORITY_VALUES.every((value) => enumValues.includes(value));
+
+		if (isPriorityEnum) {
+			return {
+				...base,
+				fieldType: "Priority",
+			} as FormElement;
+		}
 	}
 
 	// ---- String with enum: Select, RadioGroup, ToggleGroup single ----

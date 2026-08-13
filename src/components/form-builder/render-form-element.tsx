@@ -38,6 +38,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { FormElement } from "@/types/form-types";
+import { PRIORITY_OPTIONS } from "@/constants/priority-options";
 import { cn } from "@/lib/utils";
 import type { AppForm } from "@/hooks/use-form-builder";
 import { FieldDescription, FieldLegend, FieldSeparator } from "@/components/ui/field";
@@ -524,6 +525,53 @@ export const RenderFormElement = ({
 					)}
 				</form.AppField>
 			);
+		case "Priority":
+			return (
+				<form.AppField name={formElement.name}>
+					{(field) => (
+						<field.FieldSet className="w-full">
+							<field.Field>
+								<field.FieldLabel
+									className="flex justify-between items-center"
+									htmlFor={formElement.name}
+								>
+									{formElement.label}{" "}
+									{formElement.required && (
+										<span className="text-red-500">*</span>
+									)}
+								</field.FieldLabel>
+							</field.Field>
+							<Select
+								name={formElement.name}
+								value={(field.state.value as string | undefined) ?? ""}
+								onValueChange={field.handleChange}
+								defaultValue={String(field?.state.value ?? "")}
+								disabled={formElement.disabled}
+								aria-invalid={
+									!!field.state.meta.errors.length && field.state.meta.isTouched
+								}
+							>
+								<field.Field>
+									<SelectTrigger className="w-full">
+										<SelectValue placeholder="Select priority" />
+									</SelectTrigger>
+								</field.Field>
+								<SelectContent>
+									{PRIORITY_OPTIONS.map(({ label, value }) => (
+										<SelectItem key={value} value={value}>
+											{label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+							<field.FieldDescription>
+								{formElement.description}
+							</field.FieldDescription>
+							<field.FieldError />
+						</field.FieldSet>
+					)}
+				</form.AppField>
+			);
 		case "MultiSelect":
 			return (
 				<form.AppField name={formElement.name}>
@@ -540,7 +588,7 @@ export const RenderFormElement = ({
 										)}
 									</field.FieldLabel>
 									<MultiSelect
-										// value={field.state.value as string[]}
+										value={(field.state.value as string[] | undefined) ?? []}
 										disabled={formElement.disabled}
 										onValueChange={field.handleChange}
 										aria-invalid={

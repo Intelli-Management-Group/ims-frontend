@@ -65,8 +65,8 @@ describe('form-builder.service', () => {
     expect(elements?.[1]?.fieldType).toBe('TimePicker');
   });
 
-  it('does not expose Priority in the builder palette', () => {
-    expect(formElementsList.some((element) => element.fieldType === 'Priority')).toBe(false);
+  it('exposes Priority in the builder palette', () => {
+    expect(formElementsList.some((element) => element.fieldType === 'Priority')).toBe(true);
   });
 
   it('resetFormElements clears elements', () => {

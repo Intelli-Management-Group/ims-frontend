@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { IChangeEvent } from '@rjsf/core';
 import { toast } from 'sonner';
 import type { FormSubmission, FormSubmissionVersion, FormTemplate } from '@/types/api';
+import { getPriorityFieldKey } from '@/lib/priority-field';
 
 export type SubmissionWithTemplate = FormSubmission & {
   template: FormTemplate;
@@ -46,11 +47,41 @@ export function useSubmissionEditForm({ submission, onSave }: UseSubmissionEditF
       return;
     }
     if (nextData !== undefined) {
+      const data = nextData as Record<string, unknown>;
+      // Priority is rendered inside the RJSF form (via the template's schema)
+      // but must never be sent as part of `content` — pull it out and send it
+      // as the submission's top-level `priority` attribute instead, same as
+      // the fill page does.
+      const priorityFieldKey = getPriorityFieldKey(submission.template.json_schema);
+      const fieldPriorityValue = priorityFieldKey ? data[priorityFieldKey] : undefined;
+      const resolvedPriority =
+        typeof fieldPriorityValue === 'string' && fieldPriorityValue !== ''
+          ? fieldPriorityValue
+          : priority;
+
+      const content = { ...data };
+
+      // Only strip the priority field from `content` when the template's
+      // JSON schema does not require it. If the priority field is required
+      // by the schema, keep it present so server-side validation doesn't
+      // reject the submission for missing properties.
+      const schema = submission.template.json_schema as Record<string, unknown> | undefined;
+      const required = Array.isArray(schema?.required)
+        ? (schema?.required as unknown[]).filter((r): r is string => typeof r === 'string')
+        : [];
+
+      if (priorityFieldKey) {
+        const isRequired = required.includes(priorityFieldKey);
+        if (!isRequired && priorityFieldKey in content) {
+          delete content[priorityFieldKey];
+        }
+      }
+
       onSave({
         formName: formName.trim(),
-        content: nextData as Record<string, unknown>,
+        content,
         versionNumber,
-        priority,
+        priority: resolvedPriority,
       });
     }
   };

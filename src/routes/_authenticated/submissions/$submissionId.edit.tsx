@@ -7,9 +7,8 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PRIORITY_OPTIONS } from '@/constants/priority-options';
+// Priority is now a builder field; the priority picker was removed from this page
 
 import { useSubmissionEditForm, type SubmissionWithTemplate } from './useSubmissionEditForm';
 import { useSubmissionEditPage } from './useSubmissionEditPage';
@@ -39,8 +38,6 @@ function SubmissionEditForm({
     formNameError,
     handleFormNameChange,
     handleSubmit,
-    priority,
-    setPriority,
   } = useSubmissionEditForm({
     submission,
     onSave,
@@ -109,42 +106,7 @@ function SubmissionEditForm({
           )}
         </div>
 
-        {/* Priority */}
-        <div className="space-y-2">
-          <Label htmlFor="priority">
-            Priority
-          </Label>
-
-          <Select
-            value={priority ?? 'none'}
-            onValueChange={(value) =>
-              setPriority(value === 'none' ? null : value)
-            }
-            disabled={isSubmitting}
-          >
-            <SelectTrigger
-              id="priority"
-              className="w-full"
-            >
-              <SelectValue placeholder="Select priority" />
-            </SelectTrigger>
-
-            <SelectContent>
-              <SelectItem value="none">
-                None
-              </SelectItem>
-
-              {PRIORITY_OPTIONS.map(({ value, label }) => (
-                <SelectItem
-                  key={value}
-                  value={value}
-                >
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {/* priority picker removed — rendered via template schema when present */}
       </div>
 
       {/* Dynamic RJSF Form */}

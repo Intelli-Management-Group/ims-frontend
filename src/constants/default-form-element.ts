@@ -77,6 +77,11 @@ export const defaultFormElements: DefaultFormElements = {
 			{ value: "5", label: "Option 5" },
 		],
 	},
+	Priority: {
+		label: "Priority",
+		placeholder: "",
+		description: "Priority (Low / Medium / High / Critical)",
+	},
 	Slider: {
 		label: "Set Range",
 		description: "Adjust the range by sliding.",

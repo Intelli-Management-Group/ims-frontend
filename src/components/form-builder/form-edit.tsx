@@ -82,9 +82,11 @@ const inputTypes = [
 function OptionsList({
 	options = [],
 	onChange,
+	fieldType,
 }: {
 	options: Option[];
 	onChange: (options: Option[]) => void;
+	fieldType?: string;
 }): React.ReactElement {
 	const [localOptions, setLocalOptions] = useState<Option[]>(options);
 	const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -140,19 +142,23 @@ function OptionsList({
 	};
 	return (
 		<div className="space-y-3 w-full">
-			<div className="flex items-center justify-between">
-				<Label className="text-sm font-medium">Options</Label>
-				<Button
-					type="button"
-					variant="outline"
-					size="sm"
-					onClick={addOption}
-					className="h-8 px-2"
-				>
-					<PlusCircle className="h-4 w-4 mr-1" />
-					Add Option
-				</Button>
-			</div>
+				<div className="flex items-center justify-between">
+					<Label className="text-sm font-medium">Options</Label>
+					{fieldType === 'Priority' ? (
+						<div className="text-xs text-muted-foreground">Options are fixed</div>
+					) : (
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={addOption}
+							className="h-8 px-2"
+						>
+							<PlusCircle className="h-4 w-4 mr-1" />
+							Add Option
+						</Button>
+					)}
+				</div>
 
 			<div className="space-y-2 max-h-48 overflow-y-auto">
 				<Reorder.Group
@@ -162,7 +168,7 @@ function OptionsList({
 					className="space-y-2"
 					layoutScroll
 				>
-					{localOptions.map((option, index) => (
+							{localOptions.map((option, index) => (
 						<Reorder.Item
 							key={option.value}
 							value={option}
@@ -172,7 +178,7 @@ function OptionsList({
 								size={20}
 								className="dark:text-muted-foreground text-muted-foreground"
 							/>
-							{editingIndex === index ? (
+									{editingIndex === index ? (
 								<>
 									<div className="flex-1 space-y-2">
 										<div className="flex gap-2">
@@ -238,7 +244,7 @@ function OptionsList({
 										</Button>
 									</div>
 								</>
-							) : (
+									) : (
 								<>
 									<div className="flex-1 min-w-0">
 										<div className="text-sm font-medium truncate">
@@ -248,26 +254,28 @@ function OptionsList({
 											Value: {option.value}
 										</div>
 									</div>
-									<div className="flex gap-1 lg:opacity-0 opacity-100 group-hover:opacity-100 duration-200">
-										<Button
-											type="button"
-											variant="ghost"
-											size="icon"
-											onClick={() => startEdit(index)}
-											className="size-8"
-										>
-											<SquarePenIcon className="size-4" />
-										</Button>
-										<Button
-											type="button"
-											variant="ghost"
-											size="icon"
-											onClick={() => deleteOption(index)}
-											className="size-8"
-										>
-											<DeleteIcon className="size-4" />
-										</Button>
-									</div>
+												{fieldType !== 'Priority' && (
+													<div className="flex gap-1 lg:opacity-0 opacity-100 group-hover:opacity-100 duration-200">
+														<Button
+															type="button"
+															variant="ghost"
+															size="icon"
+															onClick={() => startEdit(index)}
+															className="size-8"
+														>
+															<SquarePenIcon className="size-4" />
+														</Button>
+														<Button
+															type="button"
+															variant="ghost"
+															size="icon"
+															onClick={() => deleteOption(index)}
+															className="size-8"
+														>
+															<DeleteIcon className="size-4" />
+														</Button>
+													</div>
+												)}
 								</>
 							)}
 						</Reorder.Item>
@@ -276,7 +284,11 @@ function OptionsList({
 
 				{options.length === 0 && (
 					<div className="text-center py-4 text-sm text-muted-foreground border-2 border-dashed rounded-md">
-						No options added yet. Click "Add Option" to get started.
+						{fieldType === 'Priority' ? (
+							<div>Priority options are fixed: Low / Medium / High / Critical</div>
+						) : (
+							<div>No options added yet. Click "Add Option" to get started.</div>
+						)}
 					</div>
 				)}
 			</div>
@@ -362,7 +374,8 @@ const FormElementEditor = ({
 		fieldType === "Select" ||
 		fieldType === "MultiSelect" ||
 		fieldType === "RadioGroup" ||
-		fieldType === "ToggleGroup";
+		fieldType === "ToggleGroup" ||
+		fieldType === "Priority";
 
 	return (
 		<form.AppForm>
@@ -513,6 +526,7 @@ const FormElementEditor = ({
 							<OptionsList
 								options={formElement.options || []}
 								onChange={(options) => form.setFieldValue("options", options)}
+								fieldType={fieldType}
 							/>
 						)}
 						<div className="flex items-center w-full gap-4 justify-start">

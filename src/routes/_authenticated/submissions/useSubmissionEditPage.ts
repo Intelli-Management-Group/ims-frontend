@@ -68,7 +68,12 @@ export function useSubmissionEditPage(submissionId: string) {
         form_name: formName,
         content,
         version_number: versionNumber,
-        ...(priority != null ? { priority } : {}),
+        // Presence matters, not truthiness: the resolved priority (string or
+        // null) always reflects the submission's intended priority, so the
+        // key must always be included. Omitting it when the value happens to
+        // be null would be interpreted by the API as "leave unchanged"
+        // instead of "clear the priority".
+        priority,
       }),
     onSuccess: () => {
       toast.success('Submission updated successfully');

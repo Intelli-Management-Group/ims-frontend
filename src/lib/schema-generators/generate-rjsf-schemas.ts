@@ -5,6 +5,7 @@ import type {
 } from "@/types/form-types";
 import type { FormArray } from "@/db-collections/form-builder.collections";
 import { isStatic } from "@/lib/utils";
+import { PRIORITY_OPTIONS } from "@/constants/priority-options";
 
 type RjsfUiSchema = Record<string, unknown>;
 
@@ -142,6 +143,17 @@ function buildJsonProperty(
 			};
 			break;
 		}
+		case "Priority": {
+			const en = PRIORITY_OPTIONS.map((o) => o.value);
+			const enumNames = PRIORITY_OPTIONS.map((o) => o.label);
+			prop = {
+				...base(),
+				type: "string",
+				enum: en,
+				...(enumNames.length ? { enumNames } : {}),
+			};
+			break;
+		}
 		case "RadioGroup": {
 			const { enum: en, enumNames } = optionEnums(element.options);
 			prop = {
@@ -195,7 +207,14 @@ function buildJsonProperty(
 			prop = { ...base(), type: "string" };
 	}
 
-	return { key, prop, required };
+	// Priority is never part of the submitted `content` payload — it's pulled out
+	// and sent as the submission's top-level `priority` attribute instead (see
+	// useFormFillPage/useSubmissionEditForm). It must never be marked required in
+	// the content JSON schema, or the backend's content validation will reject the
+	// submission for a key that intentionally never appears in `content`.
+	const isPriorityField = element.fieldType === "Priority";
+
+	return { key, prop, required: isPriorityField ? false : required };
 }
 
 function buildUiEntry(

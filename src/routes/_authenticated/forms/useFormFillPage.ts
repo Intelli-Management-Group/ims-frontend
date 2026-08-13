@@ -7,31 +7,7 @@ import { formTemplatesApi } from "@/api/form-templates";
 import { formSubmissionsApi } from "@/api/form-submissions";
 import { useBreadcrumb } from "@/hooks/use-breadcrumb";
 import axios from "axios";
-import { PRIORITY_VALUES } from "@/constants/priority-options";
-
-function getPriorityFieldKey(schema: Record<string, unknown>): string | undefined {
-	const properties = schema?.properties;
-	if (!properties || typeof properties !== "object") return undefined;
-
-	for (const [key, value] of Object.entries(properties as Record<string, unknown>)) {
-		if (!value || typeof value !== "object") continue;
-
-		const enumValues = (value as Record<string, unknown>).enum;
-		if (!Array.isArray(enumValues)) continue;
-
-		const stringValues = enumValues.filter(
-			(item): item is string => typeof item === "string",
-		);
-		if (stringValues.length !== PRIORITY_VALUES.length) continue;
-
-		const isPriorityEnum = PRIORITY_VALUES.every((priority) =>
-			stringValues.includes(priority),
-		);
-		if (isPriorityEnum) return key;
-	}
-
-	return undefined;
-}
+import { getPriorityFieldKey } from "@/lib/priority-field";
 
 export function useFormFillPage(templateId: string) {
 	const navigate = useNavigate();
@@ -152,10 +128,25 @@ export function useFormFillPage(templateId: string) {
 					: undefined;
 
 			const contentWithoutPriority = { ...nextData };
-			if (priorityFieldKey && priorityFieldKey in contentWithoutPriority) {
-				delete contentWithoutPriority[priorityFieldKey];
-			} else if ("priority" in contentWithoutPriority) {
-				delete contentWithoutPriority["priority"];
+
+			// Only strip the priority field out of `content` when the
+			// template's JSON schema does NOT list that field as required.
+			// Some backends validate `content` against the template schema
+			// and will fail if a required property (eg. Priority_...) is
+			// missing. Preserve required priority fields in `content` so
+			// server-side validation continues to succeed.
+			const schema = template?.json_schema as Record<string, unknown> | undefined;
+			const required = Array.isArray(schema?.required)
+				? (schema?.required as unknown[]).filter((r): r is string => typeof r === 'string')
+				: [];
+
+			if (priorityFieldKey) {
+				const isRequired = required.includes(priorityFieldKey);
+				if (!isRequired && priorityFieldKey in contentWithoutPriority) {
+					delete contentWithoutPriority[priorityFieldKey];
+				}
+			} else if ('priority' in contentWithoutPriority) {
+				delete contentWithoutPriority['priority'];
 			}
 
 			submitForm({ content: contentWithoutPriority, priority: resolvedPriority });

@@ -96,6 +96,10 @@ type Select = {
 } & React.SelectHTMLAttributes<HTMLSelectElement> &
 	SharedFormProps;
 
+type Priority = {
+  fieldType: "Priority";
+} & SharedFormProps;
+
 type MultiSelect = {
 	fieldType: "MultiSelect";
 	/**
@@ -192,6 +196,7 @@ type FormFieldElement =
 	| ToggleGroup
 	| Switch
 	| Select
+	| Priority
 	| MultiSelect
 	| Slider
 	| DatePicker

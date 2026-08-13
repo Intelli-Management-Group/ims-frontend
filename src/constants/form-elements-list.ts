@@ -5,6 +5,7 @@ import {
 	ListChecks,
 	CalendarRange,
 	Clock,
+	Flag,
 	// ToggleLeft,
 	Type,
 	WrapText,
@@ -111,6 +112,13 @@ export const formElementsList: FormElementsPaletteItem[] = [
 	// 	fieldType: "Switch",
 	// 	icon: ToggleLeft,
 	// },
+	{
+		group: "field",
+		name: "Priority",
+		fieldType: "Priority",
+		icon: Flag,
+		// options are fixed server-side; builder doesn't need to supply them
+	},
 	{
 		group: "field",
 		name: "Textarea",

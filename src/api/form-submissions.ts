@@ -44,7 +44,7 @@ export const formSubmissionsApi = {
       form_name: string;
       content: Record<string, unknown>;
       version_number: number;
-      priority?: string;
+      priority?: string | null;
     },
   ) => {
     const { data } = await apiClient.put<{ data: FormSubmission }>(
