@@ -200,8 +200,8 @@ function buildFormElement(
 			const enumValues = itemProp.enum;
 			const enumNames = itemProp.enumNames;
 
-			// MultiSelect: widget=select + options.multiple
-			if (widget === "select" || uiOptions.multiple === true) {
+			// MultiSelect: dedicated widget or legacy select + options.multiple
+			if (widget === "multiSelect" || widget === "select" || uiOptions.multiple === true) {
 				return {
 					...base,
 					fieldType: "MultiSelect",

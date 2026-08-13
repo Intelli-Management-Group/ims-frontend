@@ -2,10 +2,12 @@ import { createFileRoute, Outlet } from '@tanstack/react-router';
 import Form from '@rjsf/shadcn';
 import validator from '@rjsf/validator-ajv8';
 import type { RJSFSchema, UiSchema } from '@rjsf/utils';
+
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useSubmissionDetailPage } from './useSubmissionDetailPage';
+import { RjsfMultiSelectWidget } from '@/components/form-builder/rjsf-multi-select-widget';
 
 export const Route = createFileRoute('/_authenticated/submissions/$submissionId')({
   component: SubmissionDetailPage,
@@ -70,6 +72,9 @@ function SubmissionDetailPage() {
           validator={validator}
           disabled
           readonly
+          widgets={{
+            multiSelect: RjsfMultiSelectWidget,
+          }}
         >
           <div />
         </Form>

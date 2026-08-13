@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { RjsfMultiSelectWidget } from '@/components/form-builder/rjsf-multi-select-widget';
 // Priority is now a builder field; the priority picker was removed from this page
 
 import { useSubmissionEditForm, type SubmissionWithTemplate } from './useSubmissionEditForm';
@@ -47,9 +48,22 @@ function SubmissionEditForm({
   const schema = template.json_schema as RJSFSchema;
   const uiSchema = template.ui_schema as UiSchema;
 
-  const formData = Array.isArray(submission.current_version.content)
+ const content = Array.isArray(submission.current_version.content)
     ? {}
     : submission.current_version.content;
+
+  const priorityFieldKey = Object.keys(schema.properties ?? {}).find(
+    (key) => key.startsWith('Priority_'),
+  );
+
+  const formData = {
+    ...content,
+    ...(priorityFieldKey && submission.priority
+      ? {
+          [priorityFieldKey]: submission.priority,
+        }
+      : {}),
+  };
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -121,6 +135,10 @@ function SubmissionEditForm({
           disabled={isSubmitting}
           omitExtraData
           focusOnFirstError
+          widgets={{
+            multiSelect: RjsfMultiSelectWidget,
+          }}
+          // widgets={{ multiSelect: RjsfMultiSelectWidget }}
         >
           <div className="pt-2">
             <Button

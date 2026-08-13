@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import Form from "@rjsf/shadcn";
 import validator from "@rjsf/validator-ajv8";
 import type { RJSFSchema, UiSchema } from "@rjsf/utils";
+import { RjsfMultiSelectWidget } from "@/components/form-builder/rjsf-multi-select-widget";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -93,6 +94,7 @@ function FormFillPage() {
 					disabled={isSubmitting}
 					omitExtraData
 					focusOnFirstError
+					widgets={{ multiSelect: RjsfMultiSelectWidget }}
 				>
 					<div className="pt-2">
 						<Button type="submit" disabled={isSubmitting}>

@@ -227,6 +227,42 @@ describe("useFormFillPage", () => {
 	});
 });
 
+it("preserves MultiSelect array values when submitting the form", async () => {
+	vi.mocked(formTemplatesApi.getFormTemplate).mockResolvedValue(
+		sampleTemplate as any,
+	);
+	vi.mocked(formSubmissionsApi.createFormSubmission).mockResolvedValue(
+		{} as any,
+	);
+
+	const { result } = renderHook(() => useFormFillPage("1"), {
+		wrapper: createWrapper(),
+	});
+
+	await waitFor(() => {
+		expect(formTemplatesApi.getFormTemplate).toHaveBeenCalledWith(1);
+	});
+
+	act(() => {
+		result.current.handleFormNameChange("My Submission");
+	});
+
+	act(() => {
+		result.current.handleSubmit({
+			formData: { tags: ["one", "three"] },
+		} as any);
+	});
+
+	await waitFor(() => {
+		expect(formSubmissionsApi.createFormSubmission).toHaveBeenCalledWith({
+			form_template_id: 1,
+			form_template_version_id: 10,
+			form_name: "My Submission",
+			content: { tags: ["one", "three"] },
+		});
+	});
+});
+
 it("submits priority when provided in the form data", async () => {
 	vi.mocked(formTemplatesApi.getFormTemplate).mockResolvedValue(
 		sampleTemplate as any,

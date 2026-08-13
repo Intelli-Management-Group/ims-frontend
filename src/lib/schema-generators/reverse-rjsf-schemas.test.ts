@@ -344,6 +344,38 @@ describe('reverseMapRjsfToFormElements - enum-driven scalar controls', () => {
 });
 
 describe('reverseMapRjsfToFormElements - array-based multi controls', () => {
+  it('reconstructs a MultiSelect from an array using the dedicated multiSelect widget', () => {
+    const result = reverseMapRjsfToFormElements(
+      {
+        type: 'object',
+        properties: {
+          tags: {
+            type: 'array',
+            items: {
+              type: 'string',
+              enum: ['one', 'two'],
+              enumNames: ['One', 'Two'],
+            },
+          },
+        },
+      },
+      {
+        tags: { 'ui:widget': 'multiSelect' },
+      },
+    );
+
+    expect(result).toEqual([
+      expect.objectContaining({
+        name: 'tags',
+        fieldType: 'MultiSelect',
+        options: [
+          { value: 'one', label: 'One' },
+          { value: 'two', label: 'Two' },
+        ],
+      }),
+    ]);
+  });
+
   it('reconstructs a MultiSelect from an array of enum strings with ui:widget=select', () => {
     const jsonSchema = {
       type: 'object',

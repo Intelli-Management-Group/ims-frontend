@@ -69,6 +69,7 @@ export const defaultFormElements: DefaultFormElements = {
 	},
 	MultiSelect: {
 		label: "Select multiple options",
+		placeholder: "Select items",
 		options: [
 			{ value: "1", label: "Option 1" },
 			{ value: "2", label: "Option 2" },

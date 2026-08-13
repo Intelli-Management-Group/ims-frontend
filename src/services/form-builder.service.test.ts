@@ -65,6 +65,18 @@ describe('form-builder.service', () => {
     expect(elements?.[1]?.fieldType).toBe('TimePicker');
   });
 
+  it('creates a valid MultiSelect field without schema validation errors', () => {
+    expect(() => appendElement({ fieldType: 'MultiSelect' })).not.toThrow();
+
+    const elements = formBuilderCollection.get(FORM_ID)?.formElements as Array<{
+      fieldType?: string;
+      placeholder?: string;
+    }>;
+
+    expect(elements?.[0]?.fieldType).toBe('MultiSelect');
+    expect(elements?.[0]?.placeholder).toBe('Select items');
+  });
+
   it('exposes Priority in the builder palette', () => {
     expect(formElementsList.some((element) => element.fieldType === 'Priority')).toBe(true);
   });

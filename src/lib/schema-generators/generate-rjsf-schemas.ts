@@ -261,11 +261,10 @@ function buildUiEntry(
 			ui["ui:widget"] = "radio";
 			break;
 		case "MultiSelect":
-			ui["ui:widget"] = "select";
-			ui["ui:options"] = { multiple: true };
-			if (element.placeholder) {
-				ui["ui:placeholder"] = element.placeholder;
-			}
+			ui["ui:widget"] = "multiSelect";
+			ui["ui:options"] = {
+				...(element.placeholder ? { placeholder: element.placeholder } : {}),
+			};
 			break;
 		case "ToggleGroup":
 			ui["ui:widget"] = element.type === "single" ? "radio" : "checkboxes";

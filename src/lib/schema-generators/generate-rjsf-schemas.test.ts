@@ -55,4 +55,60 @@ describe('generateFormJsonSchema / generateFormUiSchema', () => {
       'ui:widget': 'checkbox',
     });
   });
+  it('generates a Priority field with the fixed priority enum and never requires it in content', () => {
+    const elements: FormElementOrList[] = [
+      {
+        id: 'priority-field',
+        name: 'request_priority',
+        fieldType: 'Priority',
+        label: 'Priority',
+        required: true,
+      },
+    ];
+
+    const schema = generateFormJsonSchema(elements) as Record<string, any>;
+    expect(schema.properties.request_priority).toMatchObject({
+      type: 'string',
+      enum: ['low', 'medium', 'high', 'critical'],
+      enumNames: ['Low', 'Medium', 'High', 'Critical'],
+    });
+    expect(schema.required ?? []).not.toContain('request_priority');
+
+    const ui = generateFormUiSchema(elements) as Record<string, any>;
+    expect(ui.request_priority).toMatchObject({
+      'ui:title': 'Priority',
+    });
+  });
+
+  it('generates MultiSelect as an array and uses the dedicated multiSelect RJSF widget', () => {
+    const elements: FormElementOrList[] = [
+      {
+        id: 'tags-field',
+        name: 'tags',
+        fieldType: 'MultiSelect',
+        label: 'Tags',
+        placeholder: 'Choose tags',
+        options: [
+          { value: 'one', label: 'One' },
+          { value: 'two', label: 'Two' },
+        ],
+        required: true,
+      },
+    ];
+
+    const schema = generateFormJsonSchema(elements) as Record<string, any>;
+    expect(schema.properties.tags).toMatchObject({
+      type: 'array',
+      uniqueItems: true,
+      minItems: 1,
+      items: { type: 'string', enum: ['one', 'two'], enumNames: ['One', 'Two'] },
+    });
+
+    const ui = generateFormUiSchema(elements) as Record<string, any>;
+    expect(ui.tags).toMatchObject({
+      'ui:widget': 'multiSelect',
+      'ui:options': { placeholder: 'Choose tags' },
+    });
+  });
+
 });

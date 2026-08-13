@@ -11,8 +11,13 @@ vi.mock("@tanstack/react-router", () => ({
 
 // Stub the third-party rjsf form so tests focus on this page's own logic,
 // not the form-rendering library. onSubmit is wired to a fake submit event.
+const rjsfState = vi.hoisted(() => ({ latestRjsfProps: undefined as any }));
+
 vi.mock("@rjsf/shadcn", () => ({
-	default: ({ children, onSubmit }: any) => (
+	default: (props: any) => {
+		rjsfState.latestRjsfProps = props;
+		const { children, onSubmit } = props;
+		return (
 		<form
 			data-testid="rjsf-form"
 			onSubmit={(e: any) => {
@@ -22,7 +27,8 @@ vi.mock("@rjsf/shadcn", () => ({
 		>
 			{children}
 		</form>
-	),
+		);
+	},
 }));
 
 vi.mock("@rjsf/validator-ajv8", () => ({ default: {} }));
@@ -56,6 +62,7 @@ async function renderPage(overrides: Partial<typeof baseHookReturn> = {}) {
 describe("FormFillPage", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		rjsfState.latestRjsfProps = undefined;
 	});
 
 	it("shows skeletons while loading and nothing from the template yet", async () => {
@@ -113,6 +120,16 @@ describe("FormFillPage", () => {
 		expect(
 			screen.getByRole("button", { name: /submitting/i }),
 		).toBeDisabled();
+	});
+
+	it("registers the dedicated MultiSelect widget with the RJSF form", async () => {
+		await renderPage();
+
+		expect(rjsfState.latestRjsfProps.widgets).toEqual(
+			expect.objectContaining({
+				multiSelect: expect.any(Function),
+			}),
+		);
 	});
 
 	it("calls handleSubmit with the rjsf form data on submit", async () => {
