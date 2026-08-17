@@ -116,7 +116,7 @@ describe('Submission edit page', () => {
     expect(formSubmissionsApi.getFormSubmission).toHaveBeenCalledWith(5);
   });
 
-  it('calls updateFormSubmission with form_name, content, and version_number on save', async () => {
+  it('calls updateFormSubmission with form_name, content, version_number, and priority on save', async () => {
     const user = userEvent.setup();
     vi.mocked(formSubmissionsApi.getFormSubmission).mockResolvedValue(buildMockSubmission());
     vi.mocked(formSubmissionsApi.updateFormSubmission).mockResolvedValue(
@@ -147,12 +147,13 @@ describe('Submission edit page', () => {
     await user.type(answerInput, 'updated');
 
     await user.click(screen.getByRole('button', { name: /Save changes/i }));
-
+    
     await waitFor(() => {
       expect(formSubmissionsApi.updateFormSubmission).toHaveBeenCalledWith(5, {
         form_name: 'My filled form',
         content: { answer: 'updated' },
         version_number: 2,
+        priority: null,
       });
     });
   });
