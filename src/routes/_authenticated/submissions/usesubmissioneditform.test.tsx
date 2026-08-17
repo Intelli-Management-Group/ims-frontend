@@ -223,4 +223,112 @@ describe('useSubmissionEditForm', () => {
       expect.objectContaining({ versionNumber: 7 }),
     );
   });
+
+  it('strips a priority field from content when the template does not require it', () => {
+    const onSave = vi.fn();
+
+    const submission = buildSubmission({
+      template: {
+        id: 10,
+        name: 'Contact Form',
+        json_schema: {
+          properties: {
+            priority_level: {
+              type: 'string',
+              enum: ['low', 'medium', 'high', 'critical'],
+            },
+            answer: { type: 'string' },
+          },
+          // no `required` array, so priority should be stripped from content
+        },
+        ui_schema: {},
+        is_active: true,
+        created_by: 1,
+        creator: null,
+        created_at: '',
+        updated_at: '',
+      },
+      current_version: {
+        id: 100,
+        submission_id: 5,
+        user_id: 1,
+        user: null,
+        form_name: 'Original',
+        content: {},
+        version_number: 4,
+        created_at: '',
+        updated_at: '',
+      },
+      priority: undefined,
+    });
+
+    const { result } = renderHook(() =>
+      useSubmissionEditForm({ submission, onSave }),
+    );
+
+    act(() => {
+      result.current.handleSubmit({ formData: { answer: 'ok', priority_level: 'high' } } as IChangeEvent);
+    });
+
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: { answer: 'ok' },
+        priority: 'high',
+      }),
+    );
+  });
+
+  it('retains priority in content when the template schema requires the field', () => {
+    const onSave = vi.fn();
+
+    const submission = buildSubmission({
+      template: {
+        id: 10,
+        name: 'Contact Form',
+        json_schema: {
+          properties: {
+            priority_level: {
+              type: 'string',
+              enum: ['low', 'medium', 'high', 'critical'],
+            },
+            answer: { type: 'string' },
+          },
+          required: ['priority_level'],
+        },
+        ui_schema: {},
+        is_active: true,
+        created_by: 1,
+        creator: null,
+        created_at: '',
+        updated_at: '',
+      },
+      current_version: {
+        id: 100,
+        submission_id: 5,
+        user_id: 1,
+        user: null,
+        form_name: 'Original',
+        content: {},
+        version_number: 4,
+        created_at: '',
+        updated_at: '',
+      },
+      priority: undefined,
+    });
+
+    const { result } = renderHook(() =>
+      useSubmissionEditForm({ submission, onSave }),
+    );
+
+    act(() => {
+      result.current.handleSubmit({ formData: { answer: 'ok', priority_level: 'low' } } as IChangeEvent);
+    });
+
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: { answer: 'ok', priority_level: 'low' },
+        priority: 'low',
+      }),
+    );
+  });
 });
