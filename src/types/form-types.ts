@@ -88,17 +88,17 @@ type Slider = {
 
 type Select = {
 	fieldType: "Select";
-	/**
-	 * Options for the select field
-	 */
 	options: Option[];
 	placeholder: string;
 } & React.SelectHTMLAttributes<HTMLSelectElement> &
 	SharedFormProps;
 
+
 type Priority = {
-  fieldType: "Priority";
-} & SharedFormProps;
+	fieldType: "Priority";
+	placeholder?: string;
+} & React.SelectHTMLAttributes<HTMLSelectElement> &
+	SharedFormProps;
 
 type MultiSelect = {
 	fieldType: "MultiSelect";

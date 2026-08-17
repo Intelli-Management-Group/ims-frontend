@@ -36,7 +36,8 @@ export function RjsfMultiSelectWidget({
     <MultiSelect
       value={selectedValues}
       disabled={disabled || readonly}
-      onValueChange={onChange}
+      // onValueChange={onChange}
+      onValueChange={(newValue) => onChange(newValue)}
       onOpenChange={(open) => {
         if (!open) {
           onBlur?.(id, selectedValues);
