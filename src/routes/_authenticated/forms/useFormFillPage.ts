@@ -116,11 +116,7 @@ export function useFormFillPage(templateId: string) {
 			const schemaFieldKey = template
 				? getPriorityFieldKey(template.json_schema as Record<string, unknown>)
 				: undefined;
-			const priorityFieldKey =
-				schemaFieldKey ??
-				(Object.prototype.hasOwnProperty.call(nextData, "priority")
-					? "priority"
-					: undefined);
+			const priorityFieldKey = schemaFieldKey;
 
 			const explicitPriority = priority ?? undefined;
 			const formFieldPriorityValue = priorityFieldKey
