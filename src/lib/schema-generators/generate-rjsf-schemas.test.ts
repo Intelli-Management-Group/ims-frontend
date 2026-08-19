@@ -71,6 +71,7 @@ describe('generateFormJsonSchema / generateFormUiSchema', () => {
       type: 'string',
       enum: ['low', 'medium', 'high', 'critical'],
       enumNames: ['Low', 'Medium', 'High', 'Critical'],
+      'x-field-type': 'Priority',
     });
     expect(schema.required ?? []).not.toContain('request_priority');
 

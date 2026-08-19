@@ -104,6 +104,53 @@ export function useFormFillPage(templateId: string) {
 		},
 	});
 
+	// const handleSubmit = ({ formData }: IChangeEvent) => {
+	// 	if (!formName.trim()) {
+	// 		setFormNameError(true);
+	// 		toast.error("Please enter a form name");
+	// 		return;
+	// 	}
+
+	// 	if (formData) {
+	// 		const nextData = formData as Record<string, unknown>;
+	// 		const priorityFieldKey = template
+	// 			? getPriorityFieldKey(template.json_schema as Record<string, unknown>)
+	// 			: undefined;
+	// 		const explicitPriority = priority ?? undefined;
+	// 		const formFieldPriorityValue = priorityFieldKey
+	// 			? nextData[priorityFieldKey]
+	// 			: undefined;
+	// 		const resolvedPriority =
+	// 			typeof explicitPriority === "string" && explicitPriority !== ""
+	// 				? explicitPriority
+	// 				: typeof formFieldPriorityValue === "string" && formFieldPriorityValue !== ""
+	// 				? formFieldPriorityValue
+	// 				: undefined;
+
+	// 		const contentWithoutPriority = { ...nextData };
+
+	// 		// Only strip the priority field out of `content` when the
+	// 		// template's JSON schema does NOT list that field as required.
+	// 		// Some backends validate `content` against the template schema
+	// 		// and will fail if a required property (eg. Priority_...) is
+	// 		// missing. Preserve required priority fields in `content` so
+	// 		// server-side validation continues to succeed.
+	// 		const schema = template?.json_schema as Record<string, unknown> | undefined;
+	// 		const required = Array.isArray(schema?.required)
+	// 			? (schema?.required as unknown[]).filter((r): r is string => typeof r === 'string')
+	// 			: [];
+
+	// 		if (priorityFieldKey) {
+	// 			const isRequired = required.includes(priorityFieldKey);
+	// 			if (!isRequired && priorityFieldKey in contentWithoutPriority) {
+	// 				delete contentWithoutPriority[priorityFieldKey];
+	// 			}
+	// 		}
+
+	// 		submitForm({ content: contentWithoutPriority, priority: resolvedPriority });
+	// 	}
+	// };
+	
 	const handleSubmit = ({ formData }: IChangeEvent) => {
 		if (!formName.trim()) {
 			setFormNameError(true);
@@ -113,13 +160,19 @@ export function useFormFillPage(templateId: string) {
 
 		if (formData) {
 			const nextData = formData as Record<string, unknown>;
-			const priorityFieldKey = template
+			const schemaFieldKey = template
 				? getPriorityFieldKey(template.json_schema as Record<string, unknown>)
 				: undefined;
+			const priorityFieldKey =
+				schemaFieldKey ??
+				(Object.prototype.hasOwnProperty.call(nextData, "priority")
+					? "priority"
+					: undefined);
+
 			const explicitPriority = priority ?? undefined;
 			const formFieldPriorityValue = priorityFieldKey
 				? nextData[priorityFieldKey]
-				: nextData["priority"];
+				: undefined;
 			const resolvedPriority =
 				typeof explicitPriority === "string" && explicitPriority !== ""
 					? explicitPriority
@@ -128,13 +181,6 @@ export function useFormFillPage(templateId: string) {
 					: undefined;
 
 			const contentWithoutPriority = { ...nextData };
-
-			// Only strip the priority field out of `content` when the
-			// template's JSON schema does NOT list that field as required.
-			// Some backends validate `content` against the template schema
-			// and will fail if a required property (eg. Priority_...) is
-			// missing. Preserve required priority fields in `content` so
-			// server-side validation continues to succeed.
 			const schema = template?.json_schema as Record<string, unknown> | undefined;
 			const required = Array.isArray(schema?.required)
 				? (schema?.required as unknown[]).filter((r): r is string => typeof r === 'string')
@@ -145,13 +191,13 @@ export function useFormFillPage(templateId: string) {
 				if (!isRequired && priorityFieldKey in contentWithoutPriority) {
 					delete contentWithoutPriority[priorityFieldKey];
 				}
-			} else if ('priority' in contentWithoutPriority) {
-				delete contentWithoutPriority['priority'];
 			}
 
 			submitForm({ content: contentWithoutPriority, priority: resolvedPriority });
 		}
 	};
+
+
 
 	const handleFormNameChange = (value: string) => {
 		setFormName(value);

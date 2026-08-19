@@ -236,6 +236,7 @@ describe('useSubmissionEditForm', () => {
             priority_level: {
               type: 'string',
               enum: ['low', 'medium', 'high', 'critical'],
+              'x-field-type': 'Priority',
             },
             answer: { type: 'string' },
           },
@@ -290,6 +291,7 @@ describe('useSubmissionEditForm', () => {
             priority_level: {
               type: 'string',
               enum: ['low', 'medium', 'high', 'critical'],
+              'x-field-type': 'Priority',
             },
             answer: { type: 'string' },
           },

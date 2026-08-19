@@ -1,10 +1,11 @@
-import { PRIORITY_VALUES } from "@/constants/priority-options";
+export const PRIORITY_SCHEMA_FIELD_TYPE = "x-field-type";
+export const PRIORITY_SCHEMA_FIELD_VALUE = "Priority";
 
 /**
  * Finds the key of the Priority field within a template's JSON schema, if one
- * exists. The Priority field is identified by its fixed enum
- * (low/medium/high/critical) rather than by name, since the builder assigns
- * auto-generated field names (e.g. "Priority_1786601241395").
+ * exists. The Priority field is identified by explicit schema metadata rather
+ * than by name or enum values, since ordinary Select fields can use the same
+ * values.
  *
  * Priority is never stored in `content` — its value must always be pulled out
  * of the RJSF form data and sent as the submission's top-level `priority`
@@ -22,18 +23,12 @@ export function getPriorityFieldKey(
 	)) {
 		if (!value || typeof value !== "object") continue;
 
-		const enumValues = (value as Record<string, unknown>).enum;
-		if (!Array.isArray(enumValues)) continue;
-
-		const stringValues = enumValues.filter(
-			(item): item is string => typeof item === "string",
-		);
-		if (stringValues.length !== PRIORITY_VALUES.length) continue;
-
-		const isPriorityEnum = PRIORITY_VALUES.every((priority) =>
-			stringValues.includes(priority),
-		);
-		if (isPriorityEnum) return key;
+		if (
+			(value as Record<string, unknown>)[PRIORITY_SCHEMA_FIELD_TYPE] ===
+			PRIORITY_SCHEMA_FIELD_VALUE
+		) {
+			return key;
+		}
 	}
 
 	return undefined;

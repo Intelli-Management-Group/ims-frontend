@@ -345,6 +345,7 @@ it("detects a priority field with a custom name and sends it as priority", async
 					priority_level: {
 						type: "string",
 						enum: ["low", "medium", "high", "critical"],
+						"x-field-type": "Priority",
 					},
 				},
 			},

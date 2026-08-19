@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RjsfMultiSelectWidget } from '@/components/form-builder/rjsf-multi-select-widget';
+import { getPriorityFieldKey } from '@/lib/priority-field';
 // Priority is now a builder field; the priority picker was removed from this page
 
 import { useSubmissionEditForm, type SubmissionWithTemplate } from './useSubmissionEditForm';
@@ -52,9 +53,7 @@ function SubmissionEditForm({
     ? {}
     : submission.current_version.content;
 
-  const priorityFieldKey = Object.keys(schema.properties ?? {}).find(
-    (key) => key.startsWith('Priority_'),
-  );
+  const priorityFieldKey = getPriorityFieldKey(schema as Record<string, unknown>);
 
   const formData = {
     ...content,

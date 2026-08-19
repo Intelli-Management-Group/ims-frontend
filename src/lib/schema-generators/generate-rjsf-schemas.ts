@@ -6,6 +6,10 @@ import type {
 import type { FormArray } from "@/db-collections/form-builder.collections";
 import { isStatic } from "@/lib/utils";
 import { PRIORITY_OPTIONS } from "@/constants/priority-options";
+import {
+	PRIORITY_SCHEMA_FIELD_TYPE,
+	PRIORITY_SCHEMA_FIELD_VALUE,
+} from "@/lib/priority-field";
 
 type RjsfUiSchema = Record<string, unknown>;
 
@@ -148,6 +152,7 @@ function buildJsonProperty(
 			const enumNames = PRIORITY_OPTIONS.map((o) => o.label);
 			prop = {
 				...base(),
+				[PRIORITY_SCHEMA_FIELD_TYPE]: PRIORITY_SCHEMA_FIELD_VALUE,
 				type: "string",
 				enum: en,
 				...(enumNames.length ? { enumNames } : {}),

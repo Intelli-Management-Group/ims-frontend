@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { getPriorityFieldKey } from './priority-field';
+import {
+  getPriorityFieldKey,
+  PRIORITY_SCHEMA_FIELD_TYPE,
+  PRIORITY_SCHEMA_FIELD_VALUE,
+} from './priority-field';
 
 describe('getPriorityFieldKey', () => {
   it('returns undefined for undefined or null schema', () => {
@@ -12,18 +16,31 @@ describe('getPriorityFieldKey', () => {
     expect(getPriorityFieldKey({ properties: null } as any)).toBeUndefined();
   });
 
-  it('detects priority enum when values match exactly (any order)', () => {
+  it('detects an explicitly marked priority field', () => {
     const schema = {
       properties: {
         some_priority: {
           type: 'string',
           enum: ['critical', 'low', 'high', 'medium'],
+          [PRIORITY_SCHEMA_FIELD_TYPE]: PRIORITY_SCHEMA_FIELD_VALUE,
         },
       },
     } as Record<string, unknown>;
 
     const key = getPriorityFieldKey(schema);
     expect(key).toBe('some_priority');
+  });
+
+  it('ignores an ordinary select with the same priority values', () => {
+    const schema = {
+      properties: {
+        severity: {
+          type: 'string',
+          enum: ['critical', 'low', 'high', 'medium'],
+        },
+      },
+    } as Record<string, unknown>;
+    expect(getPriorityFieldKey(schema)).toBeUndefined();
   });
 
   it('ignores enums with different lengths or extra values', () => {
