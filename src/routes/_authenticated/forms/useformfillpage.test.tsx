@@ -265,7 +265,17 @@ it("preserves MultiSelect array values when submitting the form", async () => {
 
 it("submits priority when provided in the form data", async () => {
 	vi.mocked(formTemplatesApi.getFormTemplate).mockResolvedValue(
-		sampleTemplate as any,
+		{
+			...sampleTemplate,
+			json_schema: {
+				properties: {
+					priority: {
+						type: "string",
+						"x-field-type": "Priority",
+					},
+				},
+			},
+		} as any,
 	);
 	vi.mocked(formSubmissionsApi.createFormSubmission).mockResolvedValue(
 		{} as any,
@@ -302,7 +312,17 @@ it("submits priority when provided in the form data", async () => {
 
 it("does not include priority when the form field is blank", async () => {
 	vi.mocked(formTemplatesApi.getFormTemplate).mockResolvedValue(
-		sampleTemplate as any,
+		{
+			...sampleTemplate,
+			json_schema: {
+				properties: {
+					priority: {
+						type: "string",
+						"x-field-type": "Priority",
+					},
+				},
+			},
+		} as any,
 	);
 	vi.mocked(formSubmissionsApi.createFormSubmission).mockResolvedValue(
 		{} as any,
