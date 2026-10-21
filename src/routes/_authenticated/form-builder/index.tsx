@@ -11,9 +11,9 @@ export const Route = createFileRoute('/_authenticated/form-builder/')({
 });
 
 function FormBuilderPage() {
-  const { isMobile, isTablet, headerProps } = useFormBuilderPage();
+  const { isMobile, isTablet, headerProps, onPermissionDraftChange } = useFormBuilderPage();
 
-  if (isMobile) return <FormBuilderMobileLayout headerProps={headerProps} />;
-  if (isTablet) return <FormBuilderTabletLayout headerProps={headerProps} />;
-  return <FormBuilderDesktopLayout headerProps={headerProps} />;
+  if (isMobile) return <FormBuilderMobileLayout headerProps={headerProps} onPermissionDraftChange={onPermissionDraftChange} />;
+  if (isTablet) return <FormBuilderTabletLayout headerProps={headerProps} onPermissionDraftChange={onPermissionDraftChange} />;
+  return <FormBuilderDesktopLayout headerProps={headerProps} onPermissionDraftChange={onPermissionDraftChange} />;
 }

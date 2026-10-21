@@ -98,7 +98,7 @@ function SubmissionEditForm({
 
 function SubmissionEditPage() {
   const { submissionId } = Route.useParams();
-  const { submission, isLoading, isSubmitting, updateSubmission } =
+  const { submission, isLoading, canEdit, isSubmitting, updateSubmission } =
     useSubmissionEditPage(submissionId);
 
   if (isLoading) {
@@ -119,7 +119,7 @@ function SubmissionEditPage() {
     );
   }
 
-  if (!submission?.template || !submission.current_version) {
+  if (!submission?.template || !submission.current_version || !canEdit) {
     return null;
   }
 

@@ -34,6 +34,7 @@ vi.mock("./useFormFillPage", () => ({
 const baseHookReturn = {
 	template: { id: 7, name: "Time Off Request", json_schema: {}, ui_schema: {} },
 	isLoading: false,
+	canFill: true,
 	formName: "",
 	formNameError: false,
 	isSubmitting: false,
@@ -70,6 +71,11 @@ describe("FormFillPage", () => {
 			return { container: document.body };
 		})();
 		expect(container.textContent).toBe("");
+	});
+
+	it("renders nothing when the caller lacks create permission for the template", async () => {
+		await renderPage({ canFill: false });
+		expect(document.body.textContent).toBe("");
 	});
 
 	it("renders the template name, the form name field, and the rjsf form", async () => {

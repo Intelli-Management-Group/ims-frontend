@@ -5,6 +5,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import { formSubmissionsApi } from '@/api/form-submissions';
 import { useBreadcrumb } from '@/hooks/use-breadcrumb';
+import { useMyTemplatePermissions } from '@/hooks/use-my-template-permissions';
 import type { FormSubmission } from '@/types/api';
 import { useSubmissionEditPage } from './useSubmissionEditPage';
 
@@ -27,6 +28,10 @@ vi.mock('@/api/form-submissions', () => ({
 
 vi.mock('@/hooks/use-breadcrumb', () => ({
   useBreadcrumb: vi.fn(),
+}));
+
+vi.mock('@/hooks/use-my-template-permissions', () => ({
+  useMyTemplatePermissions: vi.fn(),
 }));
 
 vi.mock('sonner', () => ({
@@ -78,6 +83,10 @@ describe('useSubmissionEditPage', () => {
 
   beforeEach(() => {
     vi.mocked(useBreadcrumb).mockReturnValue({ overrides: null, setBreadcrumbs });
+    vi.mocked(useMyTemplatePermissions).mockReturnValue({
+      data: { data: { form_template_id: 10, permissions: { view: true, create: true, edit: true } } },
+      isLoading: false,
+    } as any);
   });
 
   afterEach(() => {
@@ -206,6 +215,24 @@ describe('useSubmissionEditPage', () => {
     expect(navigateMock).not.toHaveBeenCalledWith(
       expect.objectContaining({ to: '/submissions/$submissionId' }),
     );
+  });
+
+  it('redirects to the submission detail page and shows an error toast when the caller lacks edit permission', async () => {
+    vi.mocked(formSubmissionsApi.getFormSubmission).mockResolvedValue(buildSubmission());
+    vi.mocked(useMyTemplatePermissions).mockReturnValue({
+      data: { data: { form_template_id: 10, permissions: { view: true, create: true, edit: false } } },
+      isLoading: false,
+    } as any);
+
+    renderHook(() => useSubmissionEditPage('5'), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith("You don't have permission to edit this submission");
+    });
+    expect(navigateMock).toHaveBeenCalledWith({
+      to: '/submissions/$submissionId',
+      params: { submissionId: '5' },
+    });
   });
 
   it('shows a generic error toast on non-409 update failures', async () => {

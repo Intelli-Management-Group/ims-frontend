@@ -165,5 +165,5 @@ export function useEditFormBuilderPage(templateId: string) {
     [templateName, handleTemplateNameChange, isSaving, handleSave],
   );
 
-  return { isMobile, isTablet, isLoading, headerProps };
+  return { isMobile, isTablet, isLoading, headerProps, templateId: templateDbId };
 }

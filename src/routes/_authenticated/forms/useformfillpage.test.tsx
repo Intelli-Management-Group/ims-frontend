@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useFormFillPage } from "./useFormFillPage";
 import { formTemplatesApi } from "@/api/form-templates";
 import { formSubmissionsApi } from "@/api/form-submissions";
+import { useMyTemplatePermissions } from "../../../hooks/use-my-template-permissions";
 
 const mockNavigate = vi.fn();
 const mockSetBreadcrumbs = vi.fn();
@@ -22,6 +23,10 @@ vi.mock("@/api/form-templates", () => ({
 	formTemplatesApi: {
 		getFormTemplate: vi.fn(),
 	},
+}));
+
+vi.mock("@/hooks/use-my-template-permissions", () => ({
+	useMyTemplatePermissions: vi.fn(),
 }));
 
 vi.mock("@/api/form-submissions", () => ({
@@ -59,9 +64,28 @@ const sampleTemplate = {
 	},
 };
 
+function mockFullPermissions() {
+	vi.mocked(useMyTemplatePermissions).mockReturnValue({
+		data: {
+			data: {
+				form_template_id: 1,
+				permissions: {
+					view: true,
+					create: true,
+					edit: true,
+				},
+			},
+		},
+		isLoading: false,
+		isError: false,
+	} as any);
+}
+
 describe("useFormFillPage", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		// Default: the caller can view/create/edit unless a test overrides this.
+		mockFullPermissions();
 	});
 
 	it("redirects to /forms and shows an error toast for an invalid template id", async () => {
@@ -122,13 +146,23 @@ describe("useFormFillPage", () => {
 		});
 	});
 
-	it("blocks submission and flags the error when the form name is empty", () => {
+	it("blocks submission and flags the error when the form name is empty", async () => {
+		vi.mocked(formTemplatesApi.getFormTemplate).mockResolvedValue(
+			sampleTemplate as any,
+		);
+
 		const { result } = renderHook(() => useFormFillPage("1"), {
 			wrapper: createWrapper(),
 		});
 
+		await waitFor(() => {
+			expect(result.current.canFill).toBe(true);
+		});
+
 		act(() => {
-			result.current.handleSubmit({ formData: { foo: "bar" } } as any);
+			result.current.handleSubmit({
+				formData: { foo: "bar" },
+			} as any);
 		});
 
 		expect(toast.error).toHaveBeenCalledWith("Please enter a form name");
@@ -136,14 +170,25 @@ describe("useFormFillPage", () => {
 		expect(result.current.formNameError).toBe(true);
 	});
 
-	it("clears the form name error once the user starts typing again", () => {
+	it("clears the form name error once the user starts typing again", async () => {
+		vi.mocked(formTemplatesApi.getFormTemplate).mockResolvedValue(
+			sampleTemplate as any,
+		);
+
 		const { result } = renderHook(() => useFormFillPage("1"), {
 			wrapper: createWrapper(),
 		});
 
-		act(() => {
-			result.current.handleSubmit({ formData: {} } as any);
+		await waitFor(() => {
+			expect(result.current.canFill).toBe(true);
 		});
+
+		act(() => {
+			result.current.handleSubmit({
+				formData: {},
+			} as any);
+		});
+
 		expect(result.current.formNameError).toBe(true);
 
 		act(() => {
@@ -151,36 +196,6 @@ describe("useFormFillPage", () => {
 		});
 		expect(result.current.formNameError).toBe(false);
 	});
-
-	// it("submits a trimmed form name and content, then navigates on success", async () => {
-	// 	vi.mocked(formSubmissionsApi.createFormSubmission).mockResolvedValue(
-	// 		{} as any,
-	// 	);
-
-	// 	const { result } = renderHook(() => useFormFillPage("1"), {
-	// 		wrapper: createWrapper(),
-	// 	});
-
-	// 	act(() => {
-	// 		result.current.handleFormNameChange("  My Submission  ");
-	// 	});
-	// 	act(() => {
-	// 		result.current.handleSubmit({ formData: { foo: "bar" } } as any);
-	// 	});
-
-	// 	await waitFor(() => {
-	// 		expect(formSubmissionsApi.createFormSubmission).toHaveBeenCalledWith({
-	// 			form_template_id: 1,
-	// 			form_name: "My Submission",
-	// 			content: { foo: "bar" },
-	// 		});
-	// 	});
-
-	// 	await waitFor(() => {
-	// 		expect(toast.success).toHaveBeenCalledWith("Form submitted successfully");
-	// 		expect(mockNavigate).toHaveBeenCalledWith({ to: "/forms" });
-	// 	});
-	// });
 
 	it("submits a trimmed form name and content, then navigates on success", async () => {
 		vi.mocked(formTemplatesApi.getFormTemplate).mockResolvedValue(
@@ -227,9 +242,17 @@ describe("useFormFillPage", () => {
 		});
 	});
 
-	it("does not submit when formData is missing, even with a valid name", () => {
+	it("does not submit when formData is missing, even with a valid name", async () => {
+		vi.mocked(formTemplatesApi.getFormTemplate).mockResolvedValue(
+			sampleTemplate as any,
+		);
+
 		const { result } = renderHook(() => useFormFillPage("1"), {
 			wrapper: createWrapper(),
+		});
+
+		await waitFor(() => {
+			expect(result.current.canFill).toBe(true);
 		});
 
 		act(() => {
@@ -243,12 +266,19 @@ describe("useFormFillPage", () => {
 	});
 
 	it("shows an error toast when submission fails", async () => {
+		vi.mocked(formTemplatesApi.getFormTemplate).mockResolvedValue(
+			sampleTemplate as any,
+		);
 		vi.mocked(formSubmissionsApi.createFormSubmission).mockRejectedValue(
 			new Error("nope"),
 		);
 
 		const { result } = renderHook(() => useFormFillPage("1"), {
 			wrapper: createWrapper(),
+		});
+
+		await waitFor(() => {
+			expect(result.current.canFill).toBe(true);
 		});
 
 		act(() => {
@@ -260,6 +290,35 @@ describe("useFormFillPage", () => {
 
 		await waitFor(() => {
 			expect(toast.error).toHaveBeenCalledWith("Failed to submit form");
+		});
+	});
+
+	it("redirects and shows an error toast when the caller lacks create permission", async () => {
+		vi.mocked(formTemplatesApi.getFormTemplate).mockResolvedValue(
+			sampleTemplate as any,
+		);
+		vi.mocked(useMyTemplatePermissions).mockReturnValue({
+			data: {
+				data: {
+					form_template_id: 1,
+					permissions: {
+						view: true,
+						create: false,
+						edit: true,
+					},
+				},
+			},
+			isLoading: false,
+			isError: false,
+		} as any);
+
+		renderHook(() => useFormFillPage("1"), { wrapper: createWrapper() });
+
+		await waitFor(() => {
+			expect(toast.error).toHaveBeenCalledWith(
+				"You don't have permission to fill out this form",
+			);
+			expect(mockNavigate).toHaveBeenCalledWith({ to: "/forms" });
 		});
 	});
 
